@@ -91,7 +91,6 @@ export default function ChatScreen() {
       
     } catch (error) {
       console.error('Chat error:', error);
-console.error('Chat error:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
       Alert.alert(
         'Chat Error', 
@@ -122,11 +121,29 @@ console.error('Chat error:', error);
       >
         {messages.length === 0 && (
           <View style={styles.welcomeContainer}>
-            <Text style={styles.welcomeTitle}>Welcome to Usul AI</Text>
+            <Text style={styles.welcomeTitle}>AI-Powered Islamic Research</Text>
             <Text style={styles.welcomeSubtitle}>
-              Your AI assistant for Islamic research and general knowledge.
-              Ask me anything about Islamic texts, history, jurisprudence, or any other topic.
+              Explore, search, and analyze over 15,000 texts
             </Text>
+            
+            <Pressable style={styles.videoButton}>
+              <Text style={styles.videoButtonText}>How Usul Works</Text>
+            </Pressable>
+            
+            <View style={styles.suggestionsContainer}>
+              <Pressable style={styles.suggestionButton} onPress={() => setInputText('Explain Verse')}>
+                <Text style={styles.suggestionText}>Explain Verse</Text>
+              </Pressable>
+              <Pressable style={styles.suggestionButton} onPress={() => setInputText('Find Hadith')}>
+                <Text style={styles.suggestionText}>Find Hadith</Text>
+              </Pressable>
+              <Pressable style={styles.suggestionButton} onPress={() => setInputText('Meaning Elaboration')}>
+                <Text style={styles.suggestionText}>Meaning Elaboration</Text>
+              </Pressable>
+              <Pressable style={styles.suggestionButton} onPress={() => setInputText('Explore Books')}>
+                <Text style={styles.suggestionText}>Explore Books</Text>
+              </Pressable>
+            </View>
           </View>
         )}
         {messages.map((message) => (
@@ -149,7 +166,7 @@ console.error('Chat error:', error);
                 {message.content}
               </Markdown>
             ) : (
-              <Text style={styles.messageText} selectable>
+              <Text style={styles.userMessageText} selectable>
                 {message.content}
               </Text>
             )}
@@ -183,7 +200,7 @@ console.error('Chat error:', error);
           style={styles.textInput}
           value={inputText}
           onChangeText={setInputText}
-          placeholder="Type a message..."
+          placeholder="Send a message..."
           placeholderTextColor={theme.secondary}
           multiline
           maxLength={1000}
@@ -217,7 +234,7 @@ const styles = StyleSheet.create({
   },
   welcomeTitle: {
     color: theme.primary,
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 12,
@@ -227,6 +244,40 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
+    marginBottom: 24,
+  },
+  videoButton: {
+    backgroundColor: theme.accent,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 32,
+    alignItems: 'center',
+  },
+  videoButtonText: {
+    color: theme.background, // Dark text on accent for better contrast
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  suggestionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    maxWidth: '100%',
+  },
+  suggestionButton: {
+    backgroundColor: theme.surface,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: theme.border,
+    margin: 6,
+  },
+  suggestionText: {
+    color: theme.primary,
+    fontSize: 14,
+    fontWeight: '400',
   },
   messageBubble: {
     marginVertical: 6,
@@ -253,6 +304,12 @@ const styles = StyleSheet.create({
   },
   messageText: {
     color: theme.primary,
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 4,
+  },
+  userMessageText: {
+    color: theme.background, // Dark text for proper contrast on accent background
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 4,
@@ -312,7 +369,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   sendButtonText: {
-    color: theme.primary,
+    color: theme.background, // Dark text for proper contrast on accent background
     fontSize: 16,
     fontWeight: '600',
   },
