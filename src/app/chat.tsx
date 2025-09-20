@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import { createChatCompletion, SYSTEM_MESSAGE, type OpenAIChatMessage } from '../services/llm';
 import { useConversationStore } from '../store/conversationStore';
 import { Message } from '../types/conversation';
+import Markdown from 'react-native-markdown-display';
 
 const palette = {
   background: '#0B1220',
@@ -95,7 +97,13 @@ export default function ChatScreen() {
       
     } catch (error) {
       console.error('Chat error:', error);
-      Alert.alert('Error', 'Failed to get AI response. Please check your internet connection and API key.');
+console.error('Chat error:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+      Alert.alert(
+        'Chat Error', 
+        `Failed to get response: ${errorMsg}\n\nPlease check your internet connection and ensure your OpenAI API key is properly configured.`,
+        [{ text: 'OK' }]
+      );
       
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -135,17 +143,43 @@ export default function ChatScreen() {
               message.role === 'user' ? styles.userBubble : styles.assistantBubble,
             ]}
           >
-            <Text style={styles.messageText} selectable>
-              {message.content}
-            </Text>
-            <Text style={styles.timestampText}>
-              {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
+            {message.role === 'assistant' ? (
+              <Markdown
+                style={{
+                  body: styles.messageText,
+                  code_inline: styles.inlineCode,
+                  code_block: styles.codeBlock,
+                  fence: styles.codeBlock,
+                }}
+              >
+                {message.content}
+              </Markdown>
+            ) : (
+              <Text style={styles.messageText} selectable>
+                {message.content}
+              </Text>
+            )}
+            <View style={styles.messageFooter}>
+              <Text style={styles.timestampText}>
+                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+              {message.role === 'assistant' && (
+                <Pressable 
+                  style={styles.copyButton}
+                  onPress={async () => {
+                    await Clipboard.setStringAsync(message.content);
+                    Alert.alert('Copied', 'Message copied to clipboard');
+                  }}
+                >
+                  <Text style={styles.copyButtonText}>Copy</Text>
+                </Pressable>
+              )}
+            </View>
           </View>
         ))}
         {isLoading && (
           <View style={styles.typingIndicator}>
-            <Text style={styles.typingText}>Assistant is typing...</Text>
+            <Text style={styles.typingText}>Usul AI is thinking...</Text>
           </View>
         )}
       </ScrollView>
@@ -287,5 +321,41 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  messageFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  copyButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  copyButtonText: {
+    color: palette.secondary,
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  inlineCode: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    color: '#FFD700',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+    fontSize: 14,
+    fontFamily: 'monospace',
+  },
+  codeBlock: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    color: '#FFD700',
+    padding: 12,
+    borderRadius: 8,
+    fontSize: 14,
+    fontFamily: 'monospace',
+    borderLeftWidth: 3,
+    borderLeftColor: '#1E40AF',
   },
 });

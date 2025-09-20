@@ -28,8 +28,6 @@
     "plugins": [
       "expo-router"
     ],
-    "extra": {
-      "OPENAI_API_KEY": ""
-    }
+    "extra": {}
   }
 }

@@ -10,15 +10,15 @@ export interface CreateChatCompletionParams {
   signal?: AbortSignal;
 }
 
-// Using from the blueprint: the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+// Using OpenAI GPT-4 as it's widely available and reliable
 export async function createChatCompletion(params: CreateChatCompletionParams): Promise<string> {
   const { messages, signal } = params;
 
-  // Get API key from environment or constants
-  const apiKey = Constants.expoConfig?.extra?.OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+  // Get API key from environment variables only
+  const apiKey = process.env.OPENAI_API_KEY;
   
   if (!apiKey) {
-    throw new Error('OpenAI API key not found. Please set OPENAI_API_KEY.');
+    throw new Error('OpenAI API key not configured. Please add OPENAI_API_KEY to your environment variables.');
   }
 
   const url = 'https://api.openai.com/v1/chat/completions';
@@ -30,22 +30,36 @@ export async function createChatCompletion(params: CreateChatCompletionParams): 
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'gpt-5', // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: 'gpt-4', // Using GPT-4 for reliability
       messages,
-      max_completion_tokens: 2048,
+      max_tokens: 2048, // Correct parameter name
+      temperature: 0.7,
+      stream: false,
     }),
     signal,
   });
 
   if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(`Chat request failed (${response.status}): ${text}`);
+    const text = await response.text().catch(() => 'Unknown error');
+    let errorMessage = `Request failed (${response.status})`;
+    
+    try {
+      const errorData = JSON.parse(text);
+      if (errorData.error?.message) {
+        errorMessage = errorData.error.message;
+      }
+    } catch {
+      // Use the raw text if JSON parsing fails
+      if (text) errorMessage = text;
+    }
+    
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();
   const content = data?.choices?.[0]?.message?.content ?? '';
   if (!content) {
-    throw new Error('Empty response from model');
+    throw new Error('No response content received from the model');
   }
   return content as string;
 }
