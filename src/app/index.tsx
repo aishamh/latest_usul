@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
 import { useConversationStore } from '../store/conversationStore';
@@ -14,22 +14,29 @@ const palette = {
 
 export default function ConversationListScreen() {
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout, isLoading } = useAuthStore();
   const { conversations } = useConversationStore();
+  const [isInitialized, setIsInitialized] = useState(false);
   
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace('/login');
-    }
-  }, [isAuthenticated, router]);
+    // Give stores time to initialize
+    const timer = setTimeout(() => {
+      setIsInitialized(true);
+      if (!isLoading && !isAuthenticated) {
+        router.replace('/login');
+      }
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, isLoading, router]);
 
   const handleNewChat = () => {
     const conversationId = Date.now().toString();
     router.push(`/chat?conversationId=${conversationId}`);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.replace('/login');
   };
   
@@ -37,8 +44,23 @@ export default function ConversationListScreen() {
     router.push(`/chat?conversationId=${conversationId}`);
   };
   
-  if (!isAuthenticated || !user) {
-    return null; // Will redirect to login
+  if (!isInitialized || isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#1E40AF" />
+        <Text style={styles.loadingText}>Loading Usul AI...</Text>
+      </View>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    // This will be handled by the useEffect redirect
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#1E40AF" />
+        <Text style={styles.loadingText}>Redirecting...</Text>
+      </View>
+    );
   }
 
   return (
@@ -92,6 +114,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: palette.background,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: palette.secondary,
+    fontSize: 16,
+    marginTop: 16,
   },
   sidebar: {
     flex: 1,

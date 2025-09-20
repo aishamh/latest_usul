@@ -1,13 +1,13 @@
 import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="light" backgroundColor="#0B1220" />
       <Stack 
-        initialRouteName="login" 
         screenOptions={{ 
           headerShown: false,
           contentStyle: { backgroundColor: '#0B1220' }
@@ -16,8 +16,7 @@ export default function RootLayout() {
         <Stack.Screen 
           name="login" 
           options={{ 
-            headerShown: false,
-            gestureEnabled: false 
+            headerShown: false
           }} 
         />
         <Stack.Screen 
@@ -31,8 +30,7 @@ export default function RootLayout() {
             headerTintColor: '#FFFFFF',
             headerTitleStyle: {
               fontWeight: 'bold',
-            },
-            gestureEnabled: false
+            }
           }} 
         />
         <Stack.Screen 
@@ -50,6 +48,6 @@ export default function RootLayout() {
           }} 
         />
       </Stack>
-    </>
+    </SafeAreaProvider>
   );
 } 
