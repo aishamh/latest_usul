@@ -1,23 +1,23 @@
-// Exact colors extracted from usul.ai dark theme chat interface
-// These are the precise hex values from the actual usul.ai application
+// EXACT colors from usul.ai website - NO OTHER COLORS ALLOWED
+// Extracted from the actual usul.ai academic research interface
 export const colors = {
-  // Backgrounds - Dark theme from chat interface
-  background: '#111827',      // Very dark charcoal background (from chat screenshot)
-  surface: '#1F2937',         // Slightly lighter dark surface for cards/forms
+  // Main backgrounds from usul.ai dark theme
+  background: '#0F1419',      // Very dark navy background (from usul.ai interface)
+  surface: '#1A1F29',         // Slightly lighter surface for cards (from usul.ai)
   
-  // Text colors - From chat interface
-  textPrimary: '#FFFFFF',     // White text for headings (from "Welcome to Usul AI")
-  textSecondary: '#D1D5DB',   // Light gray for secondary text (from description)
-  textMuted: '#9CA3AF',       // Medium gray for muted text
+  // Text colors from usul.ai interface
+  textPrimary: '#FFFFFF',     // Pure white for primary text (from usul.ai headings)
+  textSecondary: '#A8B3C1',   // Light blue-gray for secondary text (from usul.ai)
+  textMuted: '#6B7280',       // Medium gray for muted elements (from usul.ai)
   
-  // UI elements - Dark theme
-  border: '#374151',          // Dark gray borders
-  accent: '#B17A6B',          // Terracotta accent for buttons (keeping brand color)
-  accentPressed: '#9F6B5C',   // Darker pressed state
+  // UI elements from usul.ai brand
+  border: '#2D3340',          // Dark borders between sections (from usul.ai)
+  accent: '#C4906C',          // Warm brown accent from usul.ai branding
+  accentPressed: '#A67C5A',   // Darker pressed state of usul.ai accent
   
-  // Interactive states - Dark theme
-  inputBackground: '#1F2937', // Dark input field background (from chat input)
-  divider: '#374151',         // Dark divider lines
+  // Interactive states from usul.ai
+  inputBackground: '#1A1F29', // Input field background (matches surface)
+  divider: '#2D3340',         // Divider lines (matches border)
 };
 
 // Semantic color aliases for consistent usage

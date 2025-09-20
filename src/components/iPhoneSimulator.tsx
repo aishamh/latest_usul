@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
+import { theme } from '../theme/colors';
 
 interface iPhoneSimulatorProps {
   children: React.ReactNode;
@@ -61,16 +62,16 @@ export const IPhoneSimulator: React.FC<iPhoneSimulatorProps> = ({ children }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: theme.surface,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   deviceFrame: {
-    backgroundColor: '#000',
+    backgroundColor: theme.background,
     borderRadius: 50,
     padding: 8,
-    shadowColor: '#000',
+    shadowColor: theme.border,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
     marginLeft: -70,
     width: 140,
     height: 30,
-    backgroundColor: '#000',
+    backgroundColor: theme.background,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     zIndex: 10,
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
   timeText: {
     width: 50,
     height: 16,
-    backgroundColor: '#fff',
+    backgroundColor: theme.primary,
     borderRadius: 8,
     opacity: 0.9,
   },
@@ -121,25 +122,25 @@ const styles = StyleSheet.create({
   signal: {
     width: 16,
     height: 12,
-    backgroundColor: '#fff',
+    backgroundColor: theme.primary,
     borderRadius: 2,
   },
   wifi: {
     width: 16,
     height: 12,
-    backgroundColor: '#fff',
+    backgroundColor: theme.primary,
     borderRadius: 2,
   },
   battery: {
     width: 24,
     height: 12,
-    backgroundColor: '#fff',
+    backgroundColor: theme.primary,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: '#fff',
+    borderColor: theme.primary,
   },
   screenContent: {
-    backgroundColor: '#111827',
+    backgroundColor: theme.background,
     borderRadius: 42,
     overflow: 'hidden',
   },
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
     marginLeft: -67,
     width: 134,
     height: 5,
-    backgroundColor: '#fff',
+    backgroundColor: theme.primary,
     borderRadius: 3,
     opacity: 0.3,
   },

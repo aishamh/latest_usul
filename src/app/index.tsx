@@ -49,7 +49,7 @@ export default function ConversationListScreen() {
   if (!isInitialized || isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#1E40AF" />
+        <ActivityIndicator size="large" color={theme.accent} />
         <Text style={styles.loadingText}>Loading Usul AI...</Text>
       </View>
     );
@@ -59,7 +59,7 @@ export default function ConversationListScreen() {
     // This will be handled by the useEffect redirect
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#1E40AF" />
+        <ActivityIndicator size="large" color={theme.accent} />
         <Text style={styles.loadingText}>Redirecting...</Text>
       </View>
     );
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   newChatText: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 16,
     fontWeight: '600',
   },

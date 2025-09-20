@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 16,
     maxWidth: '85%',
-    shadowColor: '#000',
+    shadowColor: theme.border,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: '#1E40AF', // Blue inspired by usul.ai
+    backgroundColor: theme.accent, // Blue inspired by usul.ai
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     marginLeft: 12,
-    backgroundColor: '#1E40AF',
+    backgroundColor: theme.accent,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   sendButtonText: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: theme.surface,
   },
   copyButtonText: {
     color: theme.secondary,
@@ -334,8 +334,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   inlineCode: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    color: '#FFD700',
+    backgroundColor: theme.surface,
+    color: theme.accent,
     paddingHorizontal: 4,
     paddingVertical: 2,
     borderRadius: 4,
@@ -343,13 +343,13 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
   },
   codeBlock: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    color: '#FFD700',
+    backgroundColor: theme.surface,
+    color: theme.accent,
     padding: 12,
     borderRadius: 8,
     fontSize: 14,
     fontFamily: 'monospace',
     borderLeftWidth: 3,
-    borderLeftColor: '#1E40AF',
+    borderLeftColor: theme.accent,
   },
 });
