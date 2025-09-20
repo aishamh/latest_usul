@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import { createChatCompletion, SYSTEM_MESSAGE, type OpenAIChatMessage } from '../services/llm';
 import { useConversationStore } from '../store/conversationStore';
 import { Message } from '../types/conversation';
 import Markdown from 'react-native-markdown-display';
+import { ChatLayout } from '../components/ChatLayout';
 
 import { theme } from '../theme/colors';
 
@@ -113,7 +114,8 @@ export default function ChatScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ChatLayout conversationId={conversationId}>
+      <View style={styles.container}>
       <ScrollView 
         ref={scrollViewRef}
         style={styles.messagesContainer}
@@ -121,14 +123,11 @@ export default function ChatScreen() {
       >
         {messages.length === 0 && (
           <View style={styles.welcomeContainer}>
-            <Text style={styles.welcomeTitle}>AI-Powered Islamic Research</Text>
-            <Text style={styles.welcomeSubtitle}>
-              Explore, search, and analyze over 15,000 texts
-            </Text>
-            
-            <Pressable style={styles.videoButton}>
-              <Text style={styles.videoButtonText}>How Usul Works</Text>
-            </Pressable>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoIcon}>◎</Text>
+            </View>
+            <Text style={styles.welcomeTitle}>Welcome to Usul AI</Text>
+            <Text style={styles.welcomeSubtitle}>Type your first question below</Text>
             
             <View style={styles.suggestionsContainer}>
               <Pressable style={styles.suggestionButton} onPress={() => setInputText('Explain Verse')}>
@@ -196,24 +195,38 @@ export default function ChatScreen() {
       </ScrollView>
 
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          value={inputText}
-          onChangeText={setInputText}
-          placeholder="Send a message..."
-          placeholderTextColor={theme.secondary}
-          multiline
-          maxLength={1000}
-        />
-        <Pressable
-          style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-          onPress={handleSend}
-          disabled={!inputText.trim() || isLoading}
-        >
-          <Text style={[styles.sendButtonText, !inputText.trim() && styles.sendButtonTextDisabled]}>Send</Text>
-        </Pressable>
+        <View style={styles.inputWrapper}>
+          <Pressable style={styles.filtersButton}>
+            <Text style={styles.filtersIcon}>⚙</Text>
+            <Text style={styles.filtersText}>Filters</Text>
+          </Pressable>
+          <TextInput
+            style={styles.textInput}
+            value={inputText}
+            onChangeText={setInputText}
+            placeholder="Send a message..."
+            placeholderTextColor={theme.secondary}
+            multiline
+            maxLength={1000}
+            onKeyPress={(e) => {
+              if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+          />
+          <Pressable
+            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+            onPress={handleSend}
+            disabled={!inputText.trim() || isLoading}
+          >
+            <Text style={styles.sendIcon}>↑</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.disclaimerText}>AI can make mistakes. Check important info.</Text>
       </View>
-    </View>
+      </View>
+    </ChatLayout>
   );
 }
 
@@ -229,8 +242,17 @@ const styles = StyleSheet.create({
   welcomeContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
     paddingHorizontal: 20,
+    flex: 1,
+  },
+  logoContainer: {
+    marginBottom: 20,
+  },
+  logoIcon: {
+    fontSize: 32,
+    textAlign: 'center',
+    color: theme.accent,
   },
   welcomeTitle: {
     color: theme.primary,
@@ -245,19 +267,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 24,
-  },
-  videoButton: {
-    backgroundColor: theme.accent,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginBottom: 32,
-    alignItems: 'center',
-  },
-  videoButtonText: {
-    color: theme.background, // Dark text on accent for better contrast
-    fontSize: 14,
-    fontWeight: '500',
   },
   suggestionsContainer: {
     flexDirection: 'row',
@@ -284,11 +293,18 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 16,
     maxWidth: '85%',
-    shadowColor: theme.border,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
+    ...Platform.select({
+      web: {
+        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+      },
+      default: {
+        shadowColor: theme.border,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 1,
+      },
+    }),
   },
   userBubble: {
     alignSelf: 'flex-end',
@@ -339,38 +355,66 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   inputContainer: {
+    padding: 20,
+    backgroundColor: theme.background,
+    alignItems: 'center',
+  },
+  inputWrapper: {
     flexDirection: 'row',
-    padding: 16,
-    backgroundColor: theme.surface,
-    alignItems: 'flex-end',
-    borderTopWidth: 1,
-    borderTopColor: theme.border,
+    alignItems: 'center',
+    backgroundColor: theme.primary,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 8,
+    gap: 12,
+    maxWidth: 600,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  filtersButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  filtersIcon: {
+    fontSize: 16,
+    color: theme.background,
+  },
+  filtersText: {
+    color: theme.background,
+    fontSize: 14,
+    fontWeight: '500',
   },
   textInput: {
     flex: 1,
-    backgroundColor: theme.input, // Use surface for inputs as specified
-    borderWidth: 1,
-    borderColor: theme.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    color: theme.primary,
+    color: theme.background,
     fontSize: 16,
-    maxHeight: 120,
-    textAlignVertical: 'top',
+    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
   sendButton: {
-    marginLeft: 12,
     backgroundColor: theme.accent,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   sendButtonDisabled: {
     backgroundColor: theme.surface,
     opacity: 0.6,
+  },
+  sendIcon: {
+    color: theme.primary,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  disclaimerText: {
+    color: theme.secondary,
+    fontSize: 12,
+    textAlign: 'center',
+    opacity: 0.7,
   },
   sendButtonText: {
     color: theme.background, // Dark text for proper contrast on accent background
