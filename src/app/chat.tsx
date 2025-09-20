@@ -7,13 +7,7 @@ import { useConversationStore } from '../store/conversationStore';
 import { Message } from '../types/conversation';
 import Markdown from 'react-native-markdown-display';
 
-const palette = {
-  background: '#0B1220',
-  surface: '#0F172A',
-  primary: '#FFFFFF',
-  secondary: '#9BA4B0',
-  stroke: '#1F2937',
-};
+import { theme } from '../theme/colors';
 
 export default function ChatScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
@@ -190,7 +184,7 @@ console.error('Chat error:', error);
           value={inputText}
           onChangeText={setInputText}
           placeholder="Type a message..."
-          placeholderTextColor={palette.secondary}
+          placeholderTextColor={theme.secondary}
           multiline
           maxLength={1000}
         />
@@ -209,7 +203,7 @@ console.error('Chat error:', error);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palette.background,
+    backgroundColor: theme.background,
   },
   messagesContainer: {
     flex: 1,
@@ -222,14 +216,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   welcomeTitle: {
-    color: palette.primary,
+    color: theme.primary,
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 12,
   },
   welcomeSubtitle: {
-    color: palette.secondary,
+    color: theme.secondary,
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
@@ -252,54 +246,54 @@ const styles = StyleSheet.create({
   },
   assistantBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: palette.surface,
+    backgroundColor: theme.surface,
     borderWidth: 1,
-    borderColor: palette.stroke,
+    borderColor: theme.border,
     borderBottomLeftRadius: 4,
   },
   messageText: {
-    color: palette.primary,
+    color: theme.primary,
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 4,
   },
   timestampText: {
-    color: palette.secondary,
+    color: theme.secondary,
     fontSize: 11,
     opacity: 0.7,
     alignSelf: 'flex-end',
   },
   typingIndicator: {
     alignSelf: 'flex-start',
-    backgroundColor: palette.surface,
+    backgroundColor: theme.surface,
     padding: 12,
     borderRadius: 16,
     marginVertical: 4,
     borderWidth: 1,
-    borderColor: palette.stroke,
+    borderColor: theme.border,
   },
   typingText: {
-    color: palette.secondary,
+    color: theme.secondary,
     fontSize: 14,
     fontStyle: 'italic',
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: palette.surface,
+    backgroundColor: theme.surface,
     alignItems: 'flex-end',
     borderTopWidth: 1,
-    borderTopColor: palette.stroke,
+    borderTopColor: theme.border,
   },
   textInput: {
     flex: 1,
-    backgroundColor: palette.background,
+    backgroundColor: theme.background,
     borderWidth: 1,
-    borderColor: palette.stroke,
+    borderColor: theme.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    color: palette.primary,
+    color: theme.primary,
     fontSize: 16,
     maxHeight: 120,
     textAlignVertical: 'top',
@@ -314,7 +308,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: palette.stroke,
+    backgroundColor: theme.border,
     opacity: 0.5,
   },
   sendButtonText: {
@@ -335,7 +329,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   copyButtonText: {
-    color: palette.secondary,
+    color: theme.secondary,
     fontSize: 10,
     fontWeight: '500',
   },
