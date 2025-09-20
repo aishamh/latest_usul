@@ -209,7 +209,7 @@ export default function ChatScreen() {
             multiline
             maxLength={1000}
             onKeyPress={(e) => {
-              if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+              if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter') {
                 e.preventDefault();
                 handleSend();
               }
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   userMessageText: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 4,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   userTimestampText: {
-    color: '#FFFFFF',
+    color: theme.primary,
     opacity: 0.8,
   },
   typingIndicator: {
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   sendIcon: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 16,
     fontWeight: 'bold',
   },

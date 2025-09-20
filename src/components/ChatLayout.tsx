@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     minWidth: 100,
   },
   logo: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   topBarButtonText: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   },
   sidebar: {
     width: 280,
-    backgroundColor: theme.sidebarBg,
+    backgroundColor: theme.surface,
     borderRightWidth: 1,
     borderRightColor: theme.border,
     padding: 16,
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sidebarTitle: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   },
   sidebarIconText: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: theme.primary,
   },
   newChatButton: {
     flexDirection: 'row',
@@ -258,10 +258,10 @@ const styles = StyleSheet.create({
   },
   newChatIcon: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: theme.primary,
   },
   newChatText: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   chatsTitle: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   },
   chatIconText: {
     fontSize: 12,
-    color: '#FFFFFF',
+    color: theme.primary,
   },
   conversationList: {
     flex: 1,
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   dateHeader: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 12,
     fontWeight: '500',
     marginBottom: 8,
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.accent,
   },
   conversationTitle: {
-    color: '#FFFFFF',
+    color: theme.primary,
     fontSize: 13,
     lineHeight: 18,
   },
