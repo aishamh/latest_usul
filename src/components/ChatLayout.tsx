@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   topBarButtonText: {
-    color: theme.sidebarText,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sidebarTitle: {
-    color: theme.sidebarText,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -244,12 +244,12 @@ const styles = StyleSheet.create({
   },
   sidebarIconText: {
     fontSize: 16,
-    color: theme.secondary,
+    color: '#FFFFFF',
   },
   newChatButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.background,
+    backgroundColor: theme.accent,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -258,10 +258,10 @@ const styles = StyleSheet.create({
   },
   newChatIcon: {
     fontSize: 14,
-    color: theme.secondary,
+    color: '#FFFFFF',
   },
   newChatText: {
-    color: theme.sidebarText,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   chatsTitle: {
-    color: theme.sidebarText,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   },
   chatIconText: {
     fontSize: 12,
-    color: theme.secondary,
+    color: '#FFFFFF',
   },
   conversationList: {
     flex: 1,
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   dateHeader: {
-    color: theme.secondary,
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '500',
     marginBottom: 8,
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.accent,
   },
   conversationTitle: {
-    color: theme.sidebarText,
+    color: '#FFFFFF',
     fontSize: 13,
     lineHeight: 18,
   },
