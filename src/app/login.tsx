@@ -8,19 +8,7 @@ import * as WebBrowser from 'expo-web-browser';
 
 WebBrowser.maybeCompleteAuthSession();
 
-// Usul.ai exact color palette from the website
-const palette = {
-  background: '#FEFEFE',     // Light cream background (exactly like usul.ai)
-  surface: '#FFFFFF',        // Pure white for cards/surfaces
-  primary: '#000000',        // Black text (primary)
-  secondary: '#6B7280',      // Gray text (secondary)
-  muted: '#9CA3AF',          // Lighter gray for muted text
-  border: '#E5E7EB',         // Light gray borders
-  accent: '#A0635C',         // Terracotta/rust brown (usul.ai's signature color)
-  accentHover: '#8B5147',    // Darker terracotta for hover
-  input: '#FFFFFF',          // White input backgrounds
-  shadow: '#00000010',       // Very light shadow
-};
+import { theme } from '../theme/colors';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -192,17 +180,17 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palette.background,
+    backgroundColor: theme.background,
     justifyContent: 'center',
     padding: 24,
   },
   formContainer: {
-    backgroundColor: palette.surface,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: 40,
     borderWidth: 1,
-    borderColor: palette.border,
-    shadowColor: palette.shadow,
+    borderColor: theme.border,
+    shadowColor: '#00000010',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -215,13 +203,13 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   title: {
-    color: palette.primary,
+    color: theme.primary,
     fontSize: 24,
     fontWeight: '600',
     marginBottom: 8,
   },
   tagline: {
-    color: palette.secondary,
+    color: theme.secondary,
     fontSize: 15,
     fontWeight: '400',
     marginBottom: 0,
@@ -230,19 +218,19 @@ const styles = StyleSheet.create({
     display: 'none', // Hide subtitle to match usul.ai exactly
   },
   primaryButton: {
-    backgroundColor: palette.accent,
+    backgroundColor: theme.accent,
     borderRadius: 6,
     paddingVertical: 16,
     alignItems: 'center',
     marginBottom: 16,
   },
   secondaryButton: {
-    backgroundColor: palette.surface,
+    backgroundColor: theme.surface,
     borderRadius: 6,
     paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: palette.border,
+    borderColor: theme.border,
     marginBottom: 12,
   },
   backButton: {
@@ -251,17 +239,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   backButtonText: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 14,
     fontWeight: '500',
   },
   buttonText: {
-    color: palette.surface, // White text on terracotta button
+    color: theme.surface, // White text on terracotta button
     fontSize: 16,
     fontWeight: '500',
   },
   secondaryButtonText: {
-    color: palette.primary,
+    color: theme.primary,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -273,10 +261,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: palette.border,
+    backgroundColor: theme.border,
   },
   dividerText: {
-    color: palette.muted,
+    color: theme.muted,
     fontSize: 14,
     paddingHorizontal: 16,
   },

@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, ActivityIndicator, Text } from 'react-native';
+import { theme } from '../theme/colors';
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
@@ -20,13 +21,13 @@ export default function RootLayout() {
     return (
       <View style={{
         flex: 1,
-        backgroundColor: '#FEFEFE',
+        backgroundColor: theme.background,
         justifyContent: 'center',
         alignItems: 'center'
       }}>
-        <ActivityIndicator size="large" color="#A0635C" />
+        <ActivityIndicator size="large" color={theme.accent} />
         <Text style={{
-          color: '#6B7280',
+          color: theme.secondary,
           marginTop: 16,
           fontSize: 16
         }}>Loading Usul...</Text>
@@ -36,11 +37,11 @@ export default function RootLayout() {
   
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" backgroundColor="#FEFEFE" />
+      <StatusBar style="dark" backgroundColor={theme.background} />
       <Stack 
         screenOptions={{ 
           headerShown: false,
-          contentStyle: { backgroundColor: '#FEFEFE' }
+          contentStyle: { backgroundColor: theme.background }
         }}
       >
         <Stack.Screen 
@@ -55,9 +56,9 @@ export default function RootLayout() {
             title: 'Usul AI',
             headerShown: true,
             headerStyle: {
-              backgroundColor: '#FFFFFF',
+              backgroundColor: theme.surface,
             },
-            headerTintColor: '#000000',
+            headerTintColor: theme.primary,
             headerTitleStyle: {
               fontWeight: 'bold',
             }
@@ -69,9 +70,9 @@ export default function RootLayout() {
             title: 'Chat',
             headerShown: true,
             headerStyle: {
-              backgroundColor: '#FFFFFF',
+              backgroundColor: theme.surface,
             },
-            headerTintColor: '#000000',
+            headerTintColor: theme.primary,
             headerTitleStyle: {
               fontWeight: 'bold',
             }

@@ -4,17 +4,7 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
 import { useConversationStore } from '../store/conversationStore';
 
-// Usul.ai exact color palette from the website
-const palette = {
-  background: '#FEFEFE',     // Light cream background (exactly like usul.ai)
-  surface: '#FFFFFF',        // Pure white for cards/surfaces
-  primary: '#000000',        // Black text (primary)
-  secondary: '#6B7280',      // Gray text (secondary)
-  muted: '#9CA3AF',          // Lighter gray for muted text
-  border: '#E5E7EB',         // Light gray borders
-  accent: '#A0635C',         // Terracotta/rust brown (usul.ai's signature color)
-  accentHover: '#8B5147',    // Darker terracotta for hover
-};
+import { theme } from '../theme/colors';
 
 export default function ConversationListScreen() {
   const router = useRouter();
@@ -125,20 +115,20 @@ export default function ConversationListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: palette.background,
+    backgroundColor: theme.background,
   },
   loadingContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingText: {
-    color: palette.secondary,
+    color: theme.secondary,
     fontSize: 16,
     marginTop: 16,
   },
   sidebar: {
     flex: 1,
-    backgroundColor: palette.surface,
+    backgroundColor: theme.surface,
     padding: 16,
   },
   sidebarHeader: {
@@ -148,15 +138,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: palette.border,
+    borderBottomColor: theme.border,
   },
   welcomeText: {
-    color: palette.primary,
+    color: theme.primary,
     fontSize: 16,
     fontWeight: '600',
   },
   userText: {
-    color: palette.secondary,
+    color: theme.secondary,
     fontSize: 14,
     marginTop: 2,
   },
@@ -165,14 +155,14 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: palette.border,
+    borderColor: theme.border,
   },
   logoutText: {
-    color: palette.secondary,
+    color: theme.secondary,
     fontSize: 14,
   },
   newChatButton: {
-    backgroundColor: '#1E40AF',
+    backgroundColor: theme.accent,
     padding: 14,
     borderRadius: 12,
     marginBottom: 20,
@@ -187,31 +177,31 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   conversationItem: {
-    backgroundColor: palette.background,
+    backgroundColor: theme.background,
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: palette.border,
+    borderColor: theme.border,
   },
   conversationTitle: {
-    color: palette.primary,
+    color: theme.primary,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
   },
   conversationPreview: {
-    color: palette.secondary,
+    color: theme.secondary,
     fontSize: 12,
     marginBottom: 4,
   },
   conversationDate: {
-    color: palette.secondary,
+    color: theme.secondary,
     fontSize: 11,
     opacity: 0.7,
   },
   emptyText: {
-    color: palette.secondary,
+    color: theme.secondary,
     textAlign: 'center',
     fontStyle: 'italic',
     marginTop: 40,
