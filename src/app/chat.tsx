@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { createChatCompletion, SYSTEM_MESSAGE, type OpenAIChatMessage } from '../services/llm';
+import { useConversationStore } from '../store/conversationStore';
+import { Message } from '../types/conversation';
 
 const palette = {
   background: '#0B1220',
@@ -12,38 +15,118 @@ const palette = {
 
 export default function ChatScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
-  const [messages, setMessages] = useState<Array<{id: string, content: string, role: 'user' | 'assistant'}>>([]);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const { getConversationById, addMessage, addConversation, updateConversation } = useConversationStore();
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  const conversation = conversationId ? getConversationById(conversationId) : undefined;
+  const messages = conversation?.messages || [];
+  
+  useEffect(() => {
+    // Create conversation if it doesn't exist
+    if (conversationId && !conversation) {
+      addConversation({
+        id: conversationId,
+        title: 'New Chat',
+        lastMessage: '',
+        lastUpdated: new Date(),
+        messages: []
+      });
+    }
+  }, [conversationId, conversation, addConversation]);
+  
+  useEffect(() => {
+    // Auto-scroll to bottom when new messages arrive
+    if (messages.length > 0) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
 
   const handleSend = async () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || !conversationId) return;
 
-    const userMessage = {
+    const userMessage: Message = {
       id: Date.now().toString(),
       content: inputText.trim(),
-      role: 'user' as const,
+      role: 'user',
+      timestamp: new Date(),
+      type: 'text'
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    // Add user message
+    addMessage(conversationId, userMessage);
     setInputText('');
     setIsLoading(true);
 
-    // Simple response for now
-    setTimeout(() => {
-      const assistantMessage = {
+    try {
+      // Prepare conversation history for OpenAI
+      const chatMessages: OpenAIChatMessage[] = [
+        SYSTEM_MESSAGE,
+        ...messages.map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content
+        })),
+        { role: 'user', content: userMessage.content }
+      ];
+
+      // Get AI response
+      const response = await createChatCompletion({ messages: chatMessages });
+      
+      const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: `I received your message: "${userMessage.content}". This is a simple response. Add your OpenAI API key to app.json extras for real AI responses.`,
-        role: 'assistant' as const,
+        content: response,
+        role: 'assistant',
+        timestamp: new Date(),
+        type: 'text'
       };
-      setMessages(prev => [...prev, assistantMessage]);
+      
+      addMessage(conversationId, assistantMessage);
+      
+      // Update conversation title if this is the first exchange
+      if (messages.length === 0) {
+        const title = userMessage.content.length > 50 
+          ? userMessage.content.substring(0, 50) + '...'
+          : userMessage.content;
+        updateConversation(conversationId, { title });
+      }
+      
+    } catch (error) {
+      console.error('Chat error:', error);
+      Alert.alert('Error', 'Failed to get AI response. Please check your internet connection and API key.');
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Sorry, I encountered an error processing your request. Please try again.',
+        role: 'assistant',
+        timestamp: new Date(),
+        type: 'text'
+      };
+      
+      addMessage(conversationId, errorMessage);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.messagesContainer}>
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.messagesContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {messages.length === 0 && (
+          <View style={styles.welcomeContainer}>
+            <Text style={styles.welcomeTitle}>Welcome to Usul AI</Text>
+            <Text style={styles.welcomeSubtitle}>
+              Your AI assistant for Islamic research and general knowledge.
+              Ask me anything about Islamic texts, history, jurisprudence, or any other topic.
+            </Text>
+          </View>
+        )}
         {messages.map((message) => (
           <View
             key={message.id}
@@ -52,7 +135,12 @@ export default function ChatScreen() {
               message.role === 'user' ? styles.userBubble : styles.assistantBubble,
             ]}
           >
-            <Text style={styles.messageText}>{message.content}</Text>
+            <Text style={styles.messageText} selectable>
+              {message.content}
+            </Text>
+            <Text style={styles.timestampText}>
+              {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
           </View>
         ))}
         {isLoading && (
@@ -93,31 +181,68 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  welcomeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  welcomeTitle: {
+    color: palette.primary,
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  welcomeSubtitle: {
+    color: palette.secondary,
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
   messageBubble: {
-    marginVertical: 4,
-    padding: 12,
-    borderRadius: 12,
-    maxWidth: '80%',
+    marginVertical: 6,
+    padding: 14,
+    borderRadius: 16,
+    maxWidth: '85%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: palette.surface,
+    backgroundColor: '#1E40AF', // Blue inspired by usul.ai
+    borderBottomRightRadius: 4,
   },
   assistantBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: palette.stroke,
+    backgroundColor: palette.surface,
+    borderWidth: 1,
+    borderColor: palette.stroke,
+    borderBottomLeftRadius: 4,
   },
   messageText: {
     color: palette.primary,
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: 4,
+  },
+  timestampText: {
+    color: palette.secondary,
+    fontSize: 11,
+    opacity: 0.7,
+    alignSelf: 'flex-end',
   },
   typingIndicator: {
     alignSelf: 'flex-start',
-    backgroundColor: palette.stroke,
+    backgroundColor: palette.surface,
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 16,
     marginVertical: 4,
+    borderWidth: 1,
+    borderColor: palette.stroke,
   },
   typingText: {
     color: palette.secondary,
@@ -129,31 +254,37 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: palette.surface,
     alignItems: 'flex-end',
+    borderTopWidth: 1,
+    borderTopColor: palette.stroke,
   },
   textInput: {
     flex: 1,
     backgroundColor: palette.background,
     borderWidth: 1,
     borderColor: palette.stroke,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     color: palette.primary,
     fontSize: 16,
-    maxHeight: 100,
+    maxHeight: 120,
+    textAlignVertical: 'top',
   },
   sendButton: {
-    marginLeft: 8,
-    backgroundColor: palette.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
+    marginLeft: 12,
+    backgroundColor: '#1E40AF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sendButtonDisabled: {
     backgroundColor: palette.stroke,
+    opacity: 0.5,
   },
   sendButtonText: {
-    color: palette.background,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },

@@ -1,6 +1,8 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, Pressable, StyleSheet, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '../store/authStore';
+import { useConversationStore } from '../store/conversationStore';
 
 const palette = {
   background: '#0B1220',
@@ -12,20 +14,41 @@ const palette = {
 
 export default function ConversationListScreen() {
   const router = useRouter();
+  const { user, isAuthenticated, logout } = useAuthStore();
+  const { conversations } = useConversationStore();
+  
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, router]);
 
   const handleNewChat = () => {
-    router.push(`/chat?conversationId=${Date.now()}`);
+    const conversationId = Date.now().toString();
+    router.push(`/chat?conversationId=${conversationId}`);
   };
 
   const handleLogout = () => {
+    logout();
     router.replace('/login');
   };
+  
+  const handleOpenChat = (conversationId: string) => {
+    router.push(`/chat?conversationId=${conversationId}`);
+  };
+  
+  if (!isAuthenticated || !user) {
+    return null; // Will redirect to login
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.sidebar}>
         <View style={styles.sidebarHeader}>
-          <Text style={styles.welcomeText}>Welcome to Usul!</Text>
+          <View>
+            <Text style={styles.welcomeText}>Welcome back!</Text>
+            <Text style={styles.userText}>{user.name || user.email}</Text>
+          </View>
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
             <Text style={styles.logoutText}>Logout</Text>
           </Pressable>
@@ -36,7 +59,29 @@ export default function ConversationListScreen() {
         </Pressable>
         
         <View style={styles.conversationList}>
-          <Text style={styles.emptyText}>No conversations yet. Start a new chat!</Text>
+          {conversations.length === 0 ? (
+            <Text style={styles.emptyText}>No conversations yet. Start a new chat!</Text>
+          ) : (
+            <FlatList
+              data={conversations}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <Pressable 
+                  style={styles.conversationItem}
+                  onPress={() => handleOpenChat(item.id)}
+                >
+                  <Text style={styles.conversationTitle}>{item.title}</Text>
+                  <Text style={styles.conversationPreview}>
+                    {item.lastMessage || 'No messages yet'}
+                  </Text>
+                  <Text style={styles.conversationDate}>
+                    {new Date(item.lastUpdated).toLocaleDateString()}
+                  </Text>
+                </Pressable>
+              )}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
         </View>
       </View>
     </View>
@@ -56,7 +101,7 @@ const styles = StyleSheet.create({
   sidebarHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
@@ -66,6 +111,11 @@ const styles = StyleSheet.create({
     color: palette.primary,
     fontSize: 16,
     fontWeight: '600',
+  },
+  userText: {
+    color: palette.secondary,
+    fontSize: 14,
+    marginTop: 2,
   },
   logoutButton: {
     paddingHorizontal: 12,
@@ -79,25 +129,49 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   newChatButton: {
-    backgroundColor: palette.background,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: palette.stroke,
+    backgroundColor: '#1E40AF',
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 20,
+    alignItems: 'center',
   },
   newChatText: {
-    color: palette.primary,
-    textAlign: 'center',
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '600',
   },
   conversationList: {
     flex: 1,
   },
+  conversationItem: {
+    backgroundColor: palette.background,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: palette.stroke,
+  },
+  conversationTitle: {
+    color: palette.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  conversationPreview: {
+    color: palette.secondary,
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  conversationDate: {
+    color: palette.secondary,
+    fontSize: 11,
+    opacity: 0.7,
+  },
   emptyText: {
     color: palette.secondary,
     textAlign: 'center',
     fontStyle: 'italic',
-    marginTop: 20,
+    marginTop: 40,
+    fontSize: 16,
   },
 });

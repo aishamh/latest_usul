@@ -1,7 +1,12 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore, User } from '../store/authStore';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const palette = {
   background: '#0B1220',
@@ -14,39 +19,107 @@ const palette = {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login } = useAuthStore();
+  const { login, isAuthenticated } = useAuthStore();
+  
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/');
+    }
+  }, [isAuthenticated, router]);
 
   const handleEmailLogin = () => {
+    // For demo purposes - in production this would show an email/password form
     const user: User = {
-      id: 'email_user',
+      id: 'demo_user_' + Date.now(),
       email: 'user@example.com',
-      name: 'Email User',
+      name: 'Demo User',
       provider: 'email',
     };
     login(user);
-    router.push('/');
+    router.replace('/');
   };
 
-  const handleGoogleLogin = () => {
-    const user: User = {
-      id: 'google_user',
-      email: 'user@gmail.com',
-      name: 'Google User',
-      provider: 'google',
-    };
-    login(user);
-    router.push('/');
+  const handleGoogleLogin = async () => {
+    try {
+      // For demo purposes - in production this would use Google OAuth
+      Alert.alert(
+        'Demo Mode',
+        'Google login would integrate with Google OAuth in production. Using demo login.',
+        [
+          {
+            text: 'Continue with Demo',
+            onPress: () => {
+              const user: User = {
+                id: 'google_user_' + Date.now(),
+                email: 'user@gmail.com',
+                name: 'Google User',
+                provider: 'google',
+              };
+              login(user);
+              router.replace('/');
+            }
+          },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Google login failed. Please try again.');
+    }
   };
 
-  const handleAppleLogin = () => {
-    const user: User = {
-      id: 'apple_user',
-      email: 'user@icloud.com',
-      name: 'Apple User',
-      provider: 'apple',
-    };
-    login(user);
-    router.push('/');
+  const handleAppleLogin = async () => {
+    try {
+      // Check if Apple Authentication is available
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert(
+          'Demo Mode',
+          'Apple login is only available on iOS devices. Using demo login.',
+          [
+            {
+              text: 'Continue with Demo',
+              onPress: () => {
+                const user: User = {
+                  id: 'apple_user_' + Date.now(),
+                  email: 'user@icloud.com',
+                  name: 'Apple User',
+                  provider: 'apple',
+                };
+                login(user);
+                router.replace('/');
+              }
+            },
+            { text: 'Cancel', style: 'cancel' }
+          ]
+        );
+        return;
+      }
+      
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      
+      const user: User = {
+        id: credential.user,
+        email: credential.email || 'apple.user@icloud.com',
+        name: credential.fullName ? 
+          `${credential.fullName.givenName} ${credential.fullName.familyName}`.trim() : 
+          'Apple User',
+        provider: 'apple',
+      };
+      
+      login(user);
+      router.replace('/');
+    } catch (error: any) {
+      if (error.code === 'ERR_CANCELED') {
+        // User canceled, do nothing
+        return;
+      }
+      Alert.alert('Error', 'Apple login failed. Please try again.');
+    }
   };
 
   return (
