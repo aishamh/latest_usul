@@ -79,5 +79,7 @@ const initializeConversations = async () => {
   }
 };
 
-// Initialize on module load
-initializeConversations();
+// Initialize when running in browser environment
+if (typeof window !== 'undefined') {
+  initializeConversations();
+}

@@ -61,5 +61,10 @@ const initializeAuth = async () => {
   }
 };
 
-// Initialize on module load
-initializeAuth(); 
+// Initialize when running in browser environment
+if (typeof window !== 'undefined') {
+  initializeAuth();
+} else {
+  // For server-side rendering, set loading to false immediately
+  useAuthStore.setState({ isLoading: false });
+} 
