@@ -1,16 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { View, ActivityIndicator, Text } from 'react-native';
 
 export default function RootLayout() {
+  const [isReady, setIsReady] = useState(false);
+  
+  useEffect(() => {
+    // Give the app time to properly initialize
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  if (!isReady) {
+    return (
+      <View style={{
+        flex: 1,
+        backgroundColor: '#FEFEFE',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <ActivityIndicator size="large" color="#A0635C" />
+        <Text style={{
+          color: '#6B7280',
+          marginTop: 16,
+          fontSize: 16
+        }}>Loading Usul...</Text>
+      </View>
+    );
+  }
+  
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" backgroundColor="#0B1220" />
+      <StatusBar style="dark" backgroundColor="#FEFEFE" />
       <Stack 
         screenOptions={{ 
           headerShown: false,
-          contentStyle: { backgroundColor: '#0B1220' }
+          contentStyle: { backgroundColor: '#FEFEFE' }
         }}
       >
         <Stack.Screen 
@@ -25,9 +55,9 @@ export default function RootLayout() {
             title: 'Usul AI',
             headerShown: true,
             headerStyle: {
-              backgroundColor: '#0F172A',
+              backgroundColor: '#FFFFFF',
             },
-            headerTintColor: '#FFFFFF',
+            headerTintColor: '#000000',
             headerTitleStyle: {
               fontWeight: 'bold',
             }
@@ -39,9 +69,9 @@ export default function RootLayout() {
             title: 'Chat',
             headerShown: true,
             headerStyle: {
-              backgroundColor: '#0F172A',
+              backgroundColor: '#FFFFFF',
             },
-            headerTintColor: '#FFFFFF',
+            headerTintColor: '#000000',
             headerTitleStyle: {
               fontWeight: 'bold',
             }

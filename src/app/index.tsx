@@ -4,12 +4,16 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
 import { useConversationStore } from '../store/conversationStore';
 
+// Usul.ai exact color palette from the website
 const palette = {
-  background: '#0B1220',
-  surface: '#0F172A',
-  primary: '#FFFFFF',
-  secondary: '#9BA4B0',
-  stroke: '#1F2937',
+  background: '#FEFEFE',     // Light cream background (exactly like usul.ai)
+  surface: '#FFFFFF',        // Pure white for cards/surfaces
+  primary: '#000000',        // Black text (primary)
+  secondary: '#6B7280',      // Gray text (secondary)
+  muted: '#9CA3AF',          // Lighter gray for muted text
+  border: '#E5E7EB',         // Light gray borders
+  accent: '#A0635C',         // Terracotta/rust brown (usul.ai's signature color)
+  accentHover: '#8B5147',    // Darker terracotta for hover
 };
 
 export default function ConversationListScreen() {
@@ -22,13 +26,21 @@ export default function ConversationListScreen() {
     // Give stores time to initialize
     const timer = setTimeout(() => {
       setIsInitialized(true);
-      if (!isLoading && !isAuthenticated) {
-        router.replace('/login');
-      }
-    }, 100);
+    }, 200);
     
     return () => clearTimeout(timer);
-  }, [isAuthenticated, isLoading, router]);
+  }, []);
+  
+  useEffect(() => {
+    // Handle navigation after initialization
+    if (isInitialized && !isLoading && !isAuthenticated) {
+      const navTimer = setTimeout(() => {
+        router.replace('/login');
+      }, 100);
+      
+      return () => clearTimeout(navTimer);
+    }
+  }, [isInitialized, isAuthenticated, isLoading, router]);
 
   const handleNewChat = () => {
     const conversationId = Date.now().toString();
@@ -69,7 +81,7 @@ export default function ConversationListScreen() {
         <View style={styles.sidebarHeader}>
           <View>
             <Text style={styles.welcomeText}>Welcome back!</Text>
-            <Text style={styles.userText}>{user.name || user.email}</Text>
+            <Text style={styles.userText}>{user?.name || user?.email || 'User'}</Text>
           </View>
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
             <Text style={styles.logoutText}>Logout</Text>
@@ -136,7 +148,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: palette.stroke,
+    borderBottomColor: palette.border,
   },
   welcomeText: {
     color: palette.primary,
@@ -153,7 +165,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: palette.stroke,
+    borderColor: palette.border,
   },
   logoutText: {
     color: palette.secondary,
@@ -180,7 +192,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: palette.stroke,
+    borderColor: palette.border,
   },
   conversationTitle: {
     color: palette.primary,
