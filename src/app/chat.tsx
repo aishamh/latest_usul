@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   userMessageText: {
-    color: theme.background, // Dark text for proper contrast on accent background
+    color: theme.primary, // Dark text for proper contrast on accent background
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 4,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   userTimestampText: {
-    color: theme.background, // Dark text for better contrast on accent background
+    color: theme.primary, // Dark text for better contrast on accent background
     opacity: 0.8,
   },
   typingIndicator: {
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.primary,
+    backgroundColor: theme.surface,
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -379,16 +379,16 @@ const styles = StyleSheet.create({
   },
   filtersIcon: {
     fontSize: 16,
-    color: theme.background,
+    color: theme.primary,
   },
   filtersText: {
-    color: theme.background,
+    color: theme.primary,
     fontSize: 14,
     fontWeight: '500',
   },
   textInput: {
     flex: 1,
-    color: theme.background,
+    color: theme.primary,
     fontSize: 16,
     paddingVertical: 0,
     textAlignVertical: 'center',
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   sendButtonText: {
-    color: theme.background, // Dark text for proper contrast on accent background
+    color: theme.primary, // Dark text for proper contrast on accent background
     fontSize: 16,
     fontWeight: '600',
   },
