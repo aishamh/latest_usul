@@ -5,6 +5,8 @@ import { useAuthStore, User } from '../store/authStore';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import { GoogleIcon } from '../components/GoogleIcon';
+import { AppleIcon } from '../components/AppleIcon';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -160,11 +162,17 @@ export default function LoginScreen() {
             </View>
             
             <Pressable style={styles.secondaryButton} onPress={handleGoogleLogin}>
-              <Text style={styles.secondaryButtonText}>🔍 Continue with Google</Text>
+              <View style={styles.buttonWithIcon}>
+                <GoogleIcon size={20} />
+                <Text style={styles.secondaryButtonText}>Continue with Google</Text>
+              </View>
             </Pressable>
             
             <Pressable style={styles.secondaryButton} onPress={handleAppleLogin}>
-              <Text style={styles.secondaryButtonText}>🍎 Continue with Apple ID</Text>
+              <View style={styles.buttonWithIcon}>
+                <AppleIcon size={20} />
+                <Text style={styles.secondaryButtonText}>Continue with Apple ID</Text>
+              </View>
             </Pressable>
             
             <Pressable style={styles.backButton} onPress={() => setSelectedAction(null)}>
@@ -242,6 +250,12 @@ const styles = StyleSheet.create({
     color: theme.muted,
     fontSize: 14,
     fontWeight: '500',
+  },
+  buttonWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
   },
   buttonText: {
     color: theme.surface, // White text on terracotta button
