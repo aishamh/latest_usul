@@ -8,13 +8,18 @@ import * as WebBrowser from 'expo-web-browser';
 
 WebBrowser.maybeCompleteAuthSession();
 
+// Usul.ai color palette - sophisticated dark theme for Islamic research
 const palette = {
-  background: '#0B1220',
-  surface: '#0F172A',
-  primary: '#FFFFFF',
-  secondary: '#9BA4B0',
-  stroke: '#1F2937',
-  accent: '#3B82F6',
+  background: '#1A1D23',     // Deep charcoal background
+  surface: '#2D3748',        // Card/panel surfaces
+  primary: '#F7FAFC',        // Primary text (clean white)
+  secondary: '#CBD5E0',      // Secondary text (soft grey)
+  muted: '#A0AEC0',          // Muted text
+  border: '#4A5568',         // Borders and dividers
+  accent: '#3182CE',         // Primary accent (scholarly blue)
+  accentHover: '#2C5282',    // Accent hover state
+  success: '#38A169',        // Success states
+  gradient: ['#2D3748', '#1A1D23'], // Subtle gradient
 };
 
 export default function LoginScreen() {
@@ -125,8 +130,11 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Welcome to Usul</Text>
-        <Text style={styles.subtitle}>Choose your sign-in method</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Usul AI</Text>
+          <Text style={styles.tagline}>AI-Powered Islamic Research</Text>
+          <Text style={styles.subtitle}>Access over 15,000 classical Islamic texts</Text>
+        </View>
 
         <View style={styles.buttonContainer}>
           <Pressable style={styles.emailButton} onPress={handleEmailLogin}>
@@ -151,52 +159,87 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: palette.background,
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   formContainer: {
     backgroundColor: palette.surface,
-    borderRadius: 12,
-    padding: 24,
+    borderRadius: 20,
+    padding: 32,
     borderWidth: 1,
-    borderColor: palette.stroke,
+    borderColor: palette.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    maxWidth: 400,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
   title: {
     color: palette.primary,
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 36,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 10,
+    letterSpacing: -0.5,
+    marginBottom: 8,
+  },
+  tagline: {
+    color: palette.accent,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginBottom: 12,
   },
   subtitle: {
     color: palette.secondary,
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 32,
+    lineHeight: 24,
   },
   buttonContainer: {
     gap: 16,
   },
   emailButton: {
     backgroundColor: palette.accent,
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: palette.accentHover,
+    shadowColor: palette.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   googleButton: {
-    backgroundColor: '#DB4437',
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: palette.border,
   },
   appleButton: {
-    backgroundColor: '#000000',
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: palette.border,
   },
   buttonText: {
     color: palette.primary,
     fontSize: 16,
     fontWeight: '600',
+    letterSpacing: 0.5,
   },
 }); 
