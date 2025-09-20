@@ -8,18 +8,18 @@ import * as WebBrowser from 'expo-web-browser';
 
 WebBrowser.maybeCompleteAuthSession();
 
-// Usul.ai color palette - sophisticated dark theme for Islamic research
+// Usul.ai exact color palette from the website
 const palette = {
-  background: '#1A1D23',     // Deep charcoal background
-  surface: '#2D3748',        // Card/panel surfaces
-  primary: '#F7FAFC',        // Primary text (clean white)
-  secondary: '#CBD5E0',      // Secondary text (soft grey)
-  muted: '#A0AEC0',          // Muted text
-  border: '#4A5568',         // Borders and dividers
-  accent: '#3182CE',         // Primary accent (scholarly blue)
-  accentHover: '#2C5282',    // Accent hover state
-  success: '#38A169',        // Success states
-  gradient: ['#2D3748', '#1A1D23'], // Subtle gradient
+  background: '#FEFEFE',     // Light cream background (exactly like usul.ai)
+  surface: '#FFFFFF',        // Pure white for cards/surfaces
+  primary: '#000000',        // Black text (primary)
+  secondary: '#6B7280',      // Gray text (secondary)
+  muted: '#9CA3AF',          // Lighter gray for muted text
+  border: '#E5E7EB',         // Light gray borders
+  accent: '#A0635C',         // Terracotta/rust brown (usul.ai's signature color)
+  accentHover: '#8B5147',    // Darker terracotta for hover
+  input: '#FFFFFF',          // White input backgrounds
+  shadow: '#00000010',       // Very light shadow
 };
 
 export default function LoginScreen() {
@@ -131,24 +131,30 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <View style={styles.formContainer}>
         <View style={styles.header}>
-          <Text style={styles.title}>Usul AI</Text>
-          <Text style={styles.tagline}>AI-Powered Islamic Research</Text>
-          <Text style={styles.subtitle}>Access over 15,000 classical Islamic texts</Text>
+          <Text style={styles.title}>Login to your account</Text>
+          <Text style={styles.tagline}>Enter your email below to login to your account</Text>
+        </View>
+        
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Email Address</Text>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.placeholderText}>m@example.com</Text>
+          </View>
         </View>
 
-        <View style={styles.buttonContainer}>
-          <Pressable style={styles.emailButton} onPress={handleEmailLogin}>
-            <Text style={styles.buttonText}>Continue with Email</Text>
-          </Pressable>
-
-          <Pressable style={styles.googleButton} onPress={handleGoogleLogin}>
-            <Text style={styles.buttonText}>Continue with Google</Text>
-          </Pressable>
-
-          <Pressable style={styles.appleButton} onPress={handleAppleLogin}>
-            <Text style={styles.buttonText}>Continue with Apple ID</Text>
-          </Pressable>
+        <Pressable style={styles.emailButton} onPress={handleEmailLogin}>
+          <Text style={styles.buttonText}>Login</Text>
+        </Pressable>
+        
+        <View style={styles.dividerContainer}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>Or continue with</Text>
+          <View style={styles.dividerLine} />
         </View>
+        
+        <Pressable style={styles.googleButton} onPress={handleGoogleLogin}>
+          <Text style={styles.secondaryButtonText}>🔍 Login with Google</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -163,83 +169,108 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     backgroundColor: palette.surface,
-    borderRadius: 20,
-    padding: 32,
+    borderRadius: 12,
+    padding: 40,
     borderWidth: 1,
     borderColor: palette.border,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    maxWidth: 400,
+    shadowColor: palette.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    maxWidth: 420,
     alignSelf: 'center',
     width: '100%',
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 40,
+    alignItems: 'flex-start',
+    marginBottom: 32,
   },
   title: {
     color: palette.primary,
-    fontSize: 36,
-    fontWeight: '700',
-    textAlign: 'center',
-    letterSpacing: -0.5,
+    fontSize: 24,
+    fontWeight: '600',
     marginBottom: 8,
   },
   tagline: {
-    color: palette.accent,
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    marginBottom: 12,
+    color: palette.secondary,
+    fontSize: 15,
+    fontWeight: '400',
+    marginBottom: 0,
   },
   subtitle: {
-    color: palette.secondary,
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
+    display: 'none', // Hide subtitle to match usul.ai exactly
   },
-  buttonContainer: {
-    gap: 16,
+  inputContainer: {
+    marginBottom: 24,
+  },
+  inputLabel: {
+    color: palette.primary,
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    backgroundColor: palette.input,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: palette.border,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  placeholderText: {
+    color: palette.muted,
+    fontSize: 16,
   },
   emailButton: {
     backgroundColor: palette.accent,
-    borderRadius: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    borderRadius: 6,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: palette.accentHover,
-    shadowColor: palette.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    marginBottom: 20,
   },
   googleButton: {
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    backgroundColor: palette.surface,
+    borderRadius: 6,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: palette.border,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   appleButton: {
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    backgroundColor: palette.surface,
+    borderRadius: 6,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: palette.border,
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   buttonText: {
+    color: palette.surface, // White text on terracotta button
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  secondaryButtonText: {
     color: palette.primary,
     fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    fontWeight: '500',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: palette.border,
+  },
+  dividerText: {
+    color: palette.muted,
+    fontSize: 14,
+    paddingHorizontal: 16,
   },
 }); 
