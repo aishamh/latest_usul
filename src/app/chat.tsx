@@ -171,7 +171,7 @@ export default function ChatScreen() {
               </Text>
             )}
             <View style={styles.messageFooter}>
-              <Text style={styles.timestampText}>
+              <Text style={[styles.timestampText, message.role === 'user' && styles.userTimestampText]}>
                 {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </Text>
               {message.role === 'assistant' && (
@@ -210,7 +210,7 @@ export default function ChatScreen() {
           onPress={handleSend}
           disabled={!inputText.trim() || isLoading}
         >
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Text style={[styles.sendButtonText, !inputText.trim() && styles.sendButtonTextDisabled]}>Send</Text>
         </Pressable>
       </View>
     </View>
@@ -320,6 +320,10 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     alignSelf: 'flex-end',
   },
+  userTimestampText: {
+    color: theme.background, // Dark text for better contrast on accent background
+    opacity: 0.8,
+  },
   typingIndicator: {
     alignSelf: 'flex-start',
     backgroundColor: theme.surface,
@@ -344,7 +348,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    backgroundColor: theme.background,
+    backgroundColor: theme.input, // Use surface for inputs as specified
     borderWidth: 1,
     borderColor: theme.border,
     borderRadius: 12,
@@ -365,13 +369,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: theme.border,
-    opacity: 0.5,
+    backgroundColor: theme.surface,
+    opacity: 0.6,
   },
   sendButtonText: {
     color: theme.background, // Dark text for proper contrast on accent background
     fontSize: 16,
     fontWeight: '600',
+  },
+  sendButtonTextDisabled: {
+    color: theme.primary, // White text for contrast on surface background when disabled
   },
   messageFooter: {
     flexDirection: 'row',

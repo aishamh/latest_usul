@@ -1,34 +1,22 @@
-// EXACT colors from usul.ai website - NO OTHER COLORS ALLOWED
-// Extracted from the actual usul.ai academic research interface
+// ONLY 5 usul.ai colors - NO OTHER COLORS ALLOWED
 export const colors = {
-  // Main backgrounds from usul.ai dark theme
-  background: '#0F1419',      // Very dark navy background (from usul.ai interface)
-  surface: '#1A1F29',         // Slightly lighter surface for cards (from usul.ai)
-  
-  // Text colors from usul.ai interface
-  textPrimary: '#FFFFFF',     // Pure white for primary text (from usul.ai headings)
-  textSecondary: '#A8B3C1',   // Light blue-gray for secondary text (from usul.ai)
-  textMuted: '#6B7280',       // Medium gray for muted elements (from usul.ai)
-  
-  // UI elements from usul.ai brand
-  border: '#2D3340',          // Dark borders between sections (from usul.ai)
-  accent: '#C4906C',          // Warm brown accent from usul.ai branding
-  accentPressed: '#A67C5A',   // Darker pressed state of usul.ai accent
-  
-  // Interactive states from usul.ai
-  inputBackground: '#1A1F29', // Input field background (matches surface)
-  divider: '#2D3340',         // Divider lines (matches border)
+  background: '#0F1419',      // Main background
+  surface: '#1A1F29',         // Cards and surfaces  
+  accent: '#C4906C',          // Accent/action color
+  textPrimary: '#FFFFFF',     // Primary text
+  textSecondary: '#A8B3C1',   // Secondary text
 };
 
-// Semantic color aliases for consistent usage
+// Semantic mapping using ONLY the 5 colors above
 export const theme = {
   background: colors.background,
   surface: colors.surface,
+  accent: colors.accent,
   primary: colors.textPrimary,
   secondary: colors.textSecondary,
-  muted: colors.textMuted,
-  border: colors.border,
-  accent: colors.accent,
-  accentPressed: colors.accentPressed,
-  input: colors.inputBackground,
+  // Map everything else to the 5 core colors for proper hierarchy
+  muted: colors.textSecondary,        // Use secondary text for muted
+  border: colors.background,          // Use background for borders (subtle contrast against surface)
+  input: colors.surface,              // Use surface for inputs
+  accentPressed: colors.accent,       // Use same accent for pressed state (rely on opacity for feedback)
 };

@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   newChatText: {
-    color: theme.primary,
+    color: theme.background, // Dark text for proper contrast on accent background
     fontSize: 16,
     fontWeight: '600',
   },

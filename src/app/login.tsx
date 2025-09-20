@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   buttonText: {
-    color: theme.primary, // White text on terracotta button
+    color: theme.background, // Dark text for proper contrast on accent background
     fontSize: 16,
     fontWeight: '500',
   },
