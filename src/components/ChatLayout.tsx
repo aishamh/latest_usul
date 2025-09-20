@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.primary,
+    backgroundColor: theme.surface,
     borderRadius: 8,
     marginHorizontal: 20,
     paddingHorizontal: 16,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: theme.background,
+    color: theme.primary,
     fontSize: 14,
     paddingVertical: 4,
   },
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   advancedSearchText: {
-    color: theme.background,
+    color: theme.primary,
     fontSize: 12,
     fontWeight: '500',
   },

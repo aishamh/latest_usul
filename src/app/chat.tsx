@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   userMessageText: {
-    color: theme.primary, // Dark text for proper contrast on accent background
+    color: '#FFFFFF',
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 4,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   userTimestampText: {
-    color: theme.primary, // Dark text for better contrast on accent background
+    color: '#FFFFFF',
     opacity: 0.8,
   },
   typingIndicator: {
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   sendIcon: {
-    color: theme.primary,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
