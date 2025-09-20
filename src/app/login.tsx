@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore, User } from '../store/authStore';
@@ -25,6 +25,7 @@ const palette = {
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isAuthenticated } = useAuthStore();
+  const [selectedAction, setSelectedAction] = useState<'login' | 'signup' | null>(null);
   
   useEffect(() => {
     if (isAuthenticated) {
@@ -130,31 +131,59 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.formContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Login to your account</Text>
-          <Text style={styles.tagline}>Enter your email below to login to your account</Text>
-        </View>
-        
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Email Address</Text>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.placeholderText}>m@example.com</Text>
-          </View>
-        </View>
-
-        <Pressable style={styles.emailButton} onPress={handleEmailLogin}>
-          <Text style={styles.buttonText}>Login</Text>
-        </Pressable>
-        
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>Or continue with</Text>
-          <View style={styles.dividerLine} />
-        </View>
-        
-        <Pressable style={styles.googleButton} onPress={handleGoogleLogin}>
-          <Text style={styles.secondaryButtonText}>🔍 Login with Google</Text>
-        </Pressable>
+        {!selectedAction ? (
+          // Step 1: Choose Login or Sign Up
+          <>
+            <View style={styles.header}>
+              <Text style={styles.title}>Welcome to Usul</Text>
+              <Text style={styles.tagline}>Choose an option to continue</Text>
+            </View>
+            
+            <Pressable style={styles.primaryButton} onPress={() => setSelectedAction('login')}>
+              <Text style={styles.buttonText}>Log in</Text>
+            </Pressable>
+            
+            <Pressable style={styles.secondaryButton} onPress={() => setSelectedAction('signup')}>
+              <Text style={styles.secondaryButtonText}>Sign up</Text>
+            </Pressable>
+          </>
+        ) : (
+          // Step 2: Choose Authentication Method
+          <>
+            <View style={styles.header}>
+              <Text style={styles.title}>
+                {selectedAction === 'login' ? 'Log in to your account' : 'Create your account'}
+              </Text>
+              <Text style={styles.tagline}>
+                {selectedAction === 'login' ? 'Welcome back! Please enter your details' : 'Join Usul to access Islamic research texts'}
+              </Text>
+            </View>
+            
+            <Pressable style={styles.primaryButton} onPress={handleEmailLogin}>
+              <Text style={styles.buttonText}>
+                {selectedAction === 'login' ? 'Continue with Email' : 'Sign up with Email'}
+              </Text>
+            </Pressable>
+            
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>Or continue with</Text>
+              <View style={styles.dividerLine} />
+            </View>
+            
+            <Pressable style={styles.secondaryButton} onPress={handleGoogleLogin}>
+              <Text style={styles.secondaryButtonText}>🔍 Continue with Google</Text>
+            </Pressable>
+            
+            <Pressable style={styles.secondaryButton} onPress={handleAppleLogin}>
+              <Text style={styles.secondaryButtonText}>🍎 Continue with Apple ID</Text>
+            </Pressable>
+            
+            <Pressable style={styles.backButton} onPress={() => setSelectedAction(null)}>
+              <Text style={styles.backButtonText}>← Back</Text>
+            </Pressable>
+          </>
+        )}
       </View>
     </View>
   );
@@ -200,53 +229,31 @@ const styles = StyleSheet.create({
   subtitle: {
     display: 'none', // Hide subtitle to match usul.ai exactly
   },
-  inputContainer: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    color: palette.primary,
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    backgroundColor: palette.input,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: palette.border,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  placeholderText: {
-    color: palette.muted,
-    fontSize: 16,
-  },
-  emailButton: {
+  primaryButton: {
     backgroundColor: palette.accent,
     borderRadius: 6,
-    paddingVertical: 12,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  googleButton: {
+  secondaryButton: {
     backgroundColor: palette.surface,
     borderRadius: 6,
-    paddingVertical: 12,
+    paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: palette.border,
-    flexDirection: 'row',
-    justifyContent: 'center',
+    marginBottom: 12,
   },
-  appleButton: {
-    backgroundColor: palette.surface,
-    borderRadius: 6,
-    paddingVertical: 12,
+  backButton: {
+    marginTop: 20,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: palette.border,
-    flexDirection: 'row',
-    justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  backButtonText: {
+    color: palette.muted,
+    fontSize: 14,
+    fontWeight: '500',
   },
   buttonText: {
     color: palette.surface, // White text on terracotta button
