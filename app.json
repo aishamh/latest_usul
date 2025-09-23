@@ -7,6 +7,8 @@
     "platforms": ["ios", "android", "web"],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "backgroundColor": "#F9F9F9",
+    "primaryColor": "#A0635D",
     "scheme": "usul",
     "splash": {
       "image": "./assets/icon.png",
@@ -17,10 +19,18 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.usul.ai",
       "buildNumber": "1",
+      "simulator": {
+        "supportsTablet": false,
+        "modelIdentifier": "iPhone15,1",
+        "iosVersion": "17.0"
+      },
       "infoPlist": {
         "CFBundleDisplayName": "Usul AI",
         "UIRequiredDeviceCapabilities": ["armv7"],
-        "UIRequiresFullScreen": true
+        "UIRequiresFullScreen": true,
+        "UILaunchStoryboardName": "SplashScreen",
+        "UIStatusBarStyle": "UIStatusBarStyleDefault",
+        "UIUserInterfaceStyle": "Light"
       }
     },
     "android": {
@@ -33,7 +43,19 @@
       "favicon": "./assets/icon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1"
+          },
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34
+          }
+        }
+      ]
     ],
     "extra": {}
   }

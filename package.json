@@ -6,7 +6,13 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "ios:sim": "expo run:ios --simulator",
+    "ios:device": "expo run:ios --device",
+    "web": "expo start --web",
+    "dev": "expo start --dev-client",
+    "dev:ios": "expo start --dev-client --ios",
+    "prebuild": "expo prebuild",
+    "prebuild:clean": "expo prebuild --clean"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.0",
@@ -20,6 +26,7 @@
     "expo-apple-authentication": "^7.2.4",
     "expo-auth-session": "^6.2.1",
     "expo-blur": "^14.1.5",
+    "expo-build-properties": "^1.0.9",
     "expo-clipboard": "^7.1.5",
     "expo-constants": "~17.1.7",
     "expo-crypto": "^14.1.5",
