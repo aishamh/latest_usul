@@ -6,7 +6,7 @@ import { createChatCompletion, SYSTEM_MESSAGE, type OpenAIChatMessage } from '..
 import { useConversationStore } from '../store/conversationStore';
 import { Message } from '../types/conversation';
 import Markdown from 'react-native-markdown-display';
-import { ChatLayout } from '../components/ChatLayout';
+import { MobileChatLayout } from '../components/MobileChatLayout';
 
 import { theme } from '../theme/colors';
 
@@ -114,7 +114,7 @@ export default function ChatScreen() {
   };
 
   return (
-    <ChatLayout conversationId={conversationId}>
+    <MobileChatLayout>
       <View style={styles.container}>
       <ScrollView 
         ref={scrollViewRef}
@@ -226,7 +226,7 @@ export default function ChatScreen() {
         <Text style={styles.disclaimerText}>AI can make mistakes. Check important info.</Text>
       </View>
       </View>
-    </ChatLayout>
+    </MobileChatLayout>
   );
 }
 
