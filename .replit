@@ -12,8 +12,8 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 8081
-externalPort = 8081
+localPort = 40571
+externalPort = 3000
 
 [workflows]
 runButton = "Project"
@@ -32,8 +32,9 @@ name = "Expo App"
 author = "agent"
 
 [workflows.workflow.metadata]
-outputType = "console"
+outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0 npx expo start"
+args = "EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0 npx expo start --web --port 5000"
+waitForPort = 5000
