@@ -60,4 +60,4 @@ echo "   - Press 'q' to quit"
 echo ""
 
 # Start the Expo development server
-EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0 npx expo start --web --port 5000
+EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0 npx expo start --port 5000
