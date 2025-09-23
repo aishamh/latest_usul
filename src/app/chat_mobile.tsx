@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Platform, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Platform, SafeAreaView, StatusBar, Image } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import { createChatCompletion, SYSTEM_MESSAGE, type OpenAIChatMessage } from '../services/llm';
@@ -135,7 +135,11 @@ export default function ChatScreen() {
           <View style={styles.welcomeContainer}>
             <View style={styles.welcomeContent}>
               <View style={styles.logoContainer}>
-                <Text style={styles.logoIcon}>◎</Text>
+                <Image 
+                  source={require('../../assets/usul_logo.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.welcomeTitle}>Welcome to Usul AI</Text>
               <Text style={styles.welcomeSubtitle}>Type your first question below</Text>
@@ -290,11 +294,11 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     marginBottom: 20,
+    alignItems: 'center',
   },
-  logoIcon: {
-    fontSize: 48,
-    textAlign: 'center',
-    color: theme.accent,
+  logoImage: {
+    width: 80,
+    height: 80,
   },
   welcomeTitle: {
     color: theme.primary,
