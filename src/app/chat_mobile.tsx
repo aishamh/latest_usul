@@ -135,9 +135,11 @@ export default function ChatScreen() {
           <View style={styles.welcomeContainer}>
             <View style={styles.welcomeContent}>
               <View style={styles.logoContainer}>
-                <View style={styles.logoPlaceholder}>
-                  <Text style={styles.logoText}>◉</Text>
-                </View>
+                <Image 
+                  source={require('../../assets/usul_icon.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.welcomeTitle}>Welcome to Usul AI</Text>
               <Text style={styles.welcomeSubtitle}>Type your first question below</Text>
@@ -294,23 +296,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     alignItems: 'center',
   },
-  logoPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: theme.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: theme.accent,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  logoText: {
-    fontSize: 36,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+  logoImage: {
+    width: 100,
+    height: 100,
   },
   welcomeTitle: {
     color: theme.primary,
