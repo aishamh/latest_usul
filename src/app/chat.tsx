@@ -293,18 +293,11 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 16,
     maxWidth: '85%',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-      },
-      default: {
-        shadowColor: theme.border,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 1,
-      },
-    }),
+    shadowColor: theme.border,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   userBubble: {
     alignSelf: 'flex-end',

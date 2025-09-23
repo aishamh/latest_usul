@@ -10,10 +10,8 @@ export const MobileViewport: React.FC<MobileViewportProps> = ({
   children, 
   deviceType = 'iphone15' 
 }) => {
-  if (Platform.OS !== 'web') {
-    // On native platforms, just render children normally
-    return <>{children}</>;
-  }
+  // Always render children normally for native iPhone app
+  return <>{children}</>;
 
   const deviceDimensions = {
     iphone15: { width: 393, height: 852 },
