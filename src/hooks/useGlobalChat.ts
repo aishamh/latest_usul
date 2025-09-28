@@ -98,6 +98,7 @@ export function useGlobalChat({
       setMessages(prev => [...prev, userMessage]);
 
       // Import OpenAI client directly for immediate response
+      // Note: the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
@@ -105,7 +106,7 @@ export function useGlobalChat({
       });
 
       const chatResponse = await client.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5',
         messages: [
           {
             role: 'system',
@@ -131,8 +132,7 @@ You can also help with general topics, but your specialty is Islamic scholarship
           },
           { role: 'user', content: text }
         ],
-        temperature: 0.7,
-        max_tokens: 1000
+        max_completion_tokens: 1000
       });
 
       const aiResponse = chatResponse.choices?.[0]?.message?.content || 'Sorry, I encountered an error processing your request. Please try again.';
