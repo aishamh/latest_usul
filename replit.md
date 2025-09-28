@@ -14,6 +14,8 @@ Preferred communication style: Simple, everyday language.
 - **Real-time Chat Feedback**: Enhanced user experience with immediate visual feedback during message processing
 - **Error Handling Improvements**: Added proper cleanup of thinking indicators during API failures to maintain clean UI state
 - **Authentic Chat Experience**: Now matches the sophisticated interaction patterns of the original usul.ai platform
+- **Academic Sourcing System**: Implemented comprehensive citation requirements matching Usul.ai's scholarly standards with specific formats for Qur'anic verses, hadith references, classical Islamic texts, and legal opinions
+- **Research-Grade Citations**: Added mandatory source attribution for all Islamic content with proper Arabic transliteration, madhab specifications, and verifiable references to primary sources
 
 ## September 20, 2025
 - **Usul.ai Aesthetic Implementation**: Updated login interface to match usul.ai's sophisticated dark theme color palette and scholarly design aesthetic
