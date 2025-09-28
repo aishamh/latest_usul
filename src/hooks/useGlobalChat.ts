@@ -105,96 +105,199 @@ export function useGlobalChat({
             let response = '';
             
             if (lowerText.includes('hadith')) {
-              response = `**What is a Hadith?**
+              response = `# 📜 What is a Hadith?
 
-A **Hadith** (plural: Ahadith) is a recorded saying, action, or approval of Prophet Muhammad (peace be upon him). Hadith literature serves as the second most important source of Islamic guidance after the Quran.
+## 🌟 **The Simple Explanation**
+A **Hadith** (pronounced "ha-DEETH") is like a historical record of what Prophet Muhammad said, did, or approved of during his lifetime. Think of it as a collection of his words, actions, and teachings that his companions remembered and passed down.
 
-**Components of Hadith:**
-- **Matn**: The actual text/content of the hadith
-- **Isnad**: The chain of transmission/narrators
-- **Sanad**: The supporting chain of authorities
+## 💎 **Why Are They Important?**
+Hadiths are the **second most important source** of Islamic guidance after the Quran. While the Quran contains God's direct words, hadiths show us **how** the Prophet lived those teachings in daily life.
 
-**Classification:**
-Hadith scholars classify them based on authenticity:
-- **Sahih** (Sound/Authentic)
-- **Hasan** (Good/Acceptable) 
-- **Da'if** (Weak)
+---
 
-**Major Collections:**
-- Sahih al-Bukhari
-- Sahih Muslim
-- Sunan Abu Dawud
-- Jami' at-Tirmidhi
-- Sunan an-Nasa'i
-- Sunan Ibn Majah
+## 🔍 **How Hadiths Work**
 
-The science of Hadith (Ilm al-Hadith) developed sophisticated methods to authenticate and preserve the Prophet's teachings for future generations.`;
+### **📖 The Story Part**
+Every hadith has the actual teaching or story - this is called the **"Matn"** (meaning "text" in Arabic). This is the part you read that contains the Prophet's words or describes what he did.
+
+### **👥 The Source Chain** 
+Each hadith also comes with a list of people who passed it down through generations - like saying "Ahmed heard this from Fatima, who heard it from Ali, who was there when the Prophet said it." This chain is called the **"Isnad"** (meaning "support").
+
+---
+
+## ⭐ **Quality Levels**
+
+Islamic scholars developed a grading system to check how reliable each hadith is:
+
+🥇 **Sahih** (Authentic) - The gold standard, most reliable
+🥈 **Hasan** (Good) - Solid and acceptable 
+🥉 **Da'if** (Weak) - Less reliable due to gaps in the chain
+
+---
+
+## 📚 **Famous Collections**
+The most trusted collections include:
+• **Sahih al-Bukhari** - Considered the most authentic
+• **Sahih Muslim** - Also highly trusted
+• Plus four other major collections
+
+Think of hadiths as a bridge between the Quran's timeless wisdom and how to live it in the real world! 🌉`;
             } else if (lowerText.includes('quran') || lowerText.includes('verse')) {
-              response = `**Understanding the Quran**
+              response = `# 📖 Understanding the Quran
 
-The **Quran** is the holy book of Islam, believed to be the direct word of Allah revealed to Prophet Muhammad (peace be upon him) through the angel Gabriel (Jibril).
+## ✨ **What Is It?**
+The **Quran** is Islam's holy book - Muslims believe it contains the direct words of God (called "Allah" in Arabic) as revealed to Prophet Muhammad through the angel Gabriel over 23 years.
 
-**Key Aspects:**
-- **114 Chapters** (Suras) of varying lengths
-- **Revealed over 23 years** in Mecca and Medina
-- **Preserved in Arabic** since revelation
-- **Guidance** for all aspects of life
+---
 
-**Interpretation (Tafsir):**
-- Classical scholars like Ibn Kathir, Al-Tabari
-- Considers historical context, linguistic analysis
-- Cross-references with Hadith and scholarly consensus
+## 🏗️ **Structure & Organization**
 
-**Recitation:**
-- Seven canonical readings (Qira'at)
-- Melodious recitation (Tajweed) is a developed art
-- Memorization (Hifz) is highly valued
+### **📑 Chapters & Verses**
+• **114 Chapters** called "Surahs" (like book chapters)
+• Each chapter has verses called "Ayahs" (like sentences)
+• Ranges from very short (3 verses) to very long (286 verses)
 
-The Quran emphasizes justice, compassion, knowledge, and worship of Allah alone.`;
+### **🕰️ Timeline**
+• **Revealed gradually** over 23 years (610-632 CE)
+• **Two periods**: Mecca (spiritual focus) and Medina (community laws)
+• Each verse came down for specific situations and guidance
+
+---
+
+## 🎯 **Core Themes**
+
+🙏 **Worship & Faith** - Believing in one God and living righteously
+⚖️ **Justice & Ethics** - Fair treatment, honesty, kindness
+🤝 **Community** - How to live together peacefully
+📚 **Knowledge** - Encouraging learning and reflection
+🌍 **Creation** - Understanding our place in the universe
+
+---
+
+## 🎵 **The Art of Recitation**
+
+### **Beautiful Sound**
+The Quran is meant to be **recited melodiously** - there's even a special art called **"Tajweed"** (meaning "to make better") that teaches proper pronunciation and rhythm.
+
+### **Memorization Tradition**
+Many Muslims memorize the entire Quran (called **"Hifz"**) - imagine knowing a whole book by heart! These people are called **"Hafiz"** (memorizer).
+
+---
+
+## 💭 **Understanding & Interpretation**
+
+The Quran encourages **reflection and thinking**. Islamic scholars write detailed explanations called **"Tafsir"** (interpretation) that help explain:
+• Historical context of when verses were revealed
+• Deeper meanings of Arabic words
+• How teachings apply to modern life
+
+*The Quran is like a guidebook for life, covering everything from personal spirituality to social justice!* 🌟`;
             } else if (lowerText.includes('prayer') || lowerText.includes('salah')) {
-              response = `**Islamic Prayer (Salah)**
+              response = `# 🕌 Islamic Prayer (Salah)
 
-**Salah** is the second pillar of Islam and the most important act of worship after believing in Allah.
+## 💫 **What Is It?**
+**Salah** (pronounced "sa-LAH") is the Islamic form of prayer - it's like having five special conversations with God throughout each day. It's considered the **second most important pillar** of Islam after believing in God.
 
-**Five Daily Prayers:**
-1. **Fajr** - Dawn prayer (2 rakats)
-2. **Dhuhr** - Midday prayer (4 rakats)
-3. **Asr** - Afternoon prayer (4 rakats)
-4. **Maghrib** - Sunset prayer (3 rakats)
-5. **Isha** - Night prayer (4 rakats)
+---
 
-**Essential Elements:**
-- **Wudu** (Ablution) for purification
-- **Qibla** - Facing Mecca
-- **Niyyah** - Intention
-- **Specific movements** and recitations
+## 🌅 **The Five Daily Prayers**
 
-**Benefits:**
-- Spiritual connection with Allah
-- Regular remembrance throughout the day
-- Community bonding (congregational prayers)
-- Self-discipline and mindfulness
+Think of these as spiritual checkpoints that keep you connected to God throughout your day:
 
-Each prayer has specific times based on the sun's position and includes recitation of verses from the Quran.`;
+🌄 **1. Fajr** - **Dawn Prayer**
+• Before sunrise, when the world is quiet and peaceful
+• 2 units of prayer
+
+☀️ **2. Dhuhr** - **Midday Prayer**  
+• When the sun reaches its peak
+• 4 units of prayer
+
+🌤️ **3. Asr** - **Afternoon Prayer**
+• Late afternoon, as shadows lengthen
+• 4 units of prayer
+
+🌅 **4. Maghrib** - **Sunset Prayer**
+• Just after the sun sets
+• 3 units of prayer  
+
+🌙 **5. Isha** - **Night Prayer**
+• When darkness settles in
+• 4 units of prayer
+
+---
+
+## 🧘‍♂️ **How It Works**
+
+### **🚿 Getting Ready (Wudu)**
+Before praying, Muslims perform **"Wudu"** - a gentle washing of hands, face, arms, and feet. It's both physical and spiritual cleansing, like hitting a reset button.
+
+### **🧭 Direction (Qibla)**
+Muslims pray facing **Mecca** (the holy city in Saudi Arabia) - this creates unity as millions pray in the same direction worldwide.
+
+### **💭 Intention (Niyyah)**  
+Before starting, you make a quiet intention in your heart about which prayer you're doing. It's like telling yourself "I'm ready to focus on God now."
+
+---
+
+## 💙 **Beautiful Benefits**
+
+✨ **Spiritual Peace** - Direct connection with the Divine
+⏰ **Life Structure** - Natural rhythm throughout the day
+🤝 **Community Bond** - Praying together builds brotherhood
+🧠 **Mindfulness** - Breaks from worldly distractions
+💪 **Discipline** - Builds consistent positive habits
+
+---
+
+## 🎼 **The Experience**
+Prayer involves gentle standing, bowing, and prostrating while reciting beautiful verses from the Quran. It's like a dance of the soul - peaceful, rhythmic, and deeply meditative.
+
+*Imagine taking five peaceful breaks each day to reconnect with your purpose and find inner calm!* 🕊️`;
             } else {
-              response = `**Welcome to Usul AI**
+              response = `# 🌟 Welcome to Usul AI!
 
-As your Islamic research assistant, I'm here to help you explore Islamic knowledge including:
-- **Quranic studies** and interpretation
-- **Hadith** analysis and authentication  
-- **Islamic jurisprudence** (Fiqh)
-- **Islamic history** and scholarly traditions
-- **Arabic language** and its relationship to Islamic texts
+## 🕌 **Your Friendly Islamic Learning Companion**
 
-Please feel free to ask specific questions about any Islamic topic, and I'll provide scholarly, well-researched responses based on authentic sources.
+Whether you're completely new to Islam, exploring different faiths, or deepening your existing knowledge, I'm here to make Islamic teachings accessible and beautiful for everyone.
 
-Some example questions you might ask:
-- "Explain the concept of Tawhid in Islam"
-- "What are the different schools of Islamic jurisprudence?"
-- "Can you explain the significance of the Hajj pilgrimage?"
-- "What is the role of consensus (Ijma) in Islamic law?"
+---
 
-How can I assist you with your Islamic studies today?`;
+## 💎 **What I Can Help You With**
+
+### 📖 **Holy Texts & Teachings**
+• **Quran** - Islam's holy book and its beautiful messages
+• **Hadith** - Prophet Muhammad's sayings and life examples
+• **Stories & History** - Amazing tales from Islamic heritage
+
+### 🙏 **Practices & Beliefs**  
+• **Five Pillars** - The core foundations of Islamic life
+• **Prayer & Worship** - How Muslims connect with God
+• **Holidays & Celebrations** - Ramadan, Eid, and more
+
+### 🌍 **Culture & Community**
+• **Islamic Values** - Justice, compassion, knowledge, and peace
+• **Daily Life** - How Islamic principles guide everyday decisions
+• **Different Traditions** - The rich diversity within Islam
+
+---
+
+## 💫 **My Promise to You**
+
+I'll explain everything in **simple, everyday language** - no confusing jargon! Think of me as that knowledgeable friend who loves sharing beautiful wisdom in a way that anyone can understand and appreciate.
+
+---
+
+## 🚀 **Try Asking Me:**
+
+💭 *"What makes Islam special?"*
+💭 *"How do Muslims pray?"*
+💭 *"What is Ramadan like?"*
+💭 *"Tell me about Prophet Muhammad"*
+💭 *"What does the Quran teach about kindness?"*
+
+---
+
+**What would you like to explore today?** I'm excited to share this beautiful tradition with you! ✨`;
             }
             
             resolve(response);
