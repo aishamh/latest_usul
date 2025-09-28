@@ -16,6 +16,10 @@ localPort = 5001
 externalPort = 3001
 
 [[ports]]
+localPort = 39991
+externalPort = 3002
+
+[[ports]]
 localPort = 42107
 externalPort = 3000
 
@@ -45,5 +49,5 @@ waitForPort = 5000
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npx", "serve", "-s", "dist", "-l", "tcp://0.0.0.0:5000"]
-build = ["npx", "expo", "export", "--platform", "web"]
+run = ["node", "server.js"]
+build = ["bash", "-c", "npx expo export --platform web && echo 'Build completed successfully'"]
