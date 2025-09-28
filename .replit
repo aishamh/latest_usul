@@ -38,3 +38,7 @@ outputType = "webview"
 task = "shell.exec"
 args = "EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0 EXPO_ROUTER_APP_ROOT=src/app npx expo start --port 5000"
 waitForPort = 5000
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["npx", "expo", "start", "--web-only", "--port", "5000", "--no-dev"]
