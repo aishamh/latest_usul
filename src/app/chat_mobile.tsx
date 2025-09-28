@@ -169,7 +169,7 @@ export default function ChatScreen() {
           <Pressable
             style={[styles.sendButton, !input.trim() && styles.sendButtonDisabled]}
             onPress={handleSend}
-            disabled={!input.trim() || isLoading || !isInitialized}
+            disabled={!input.trim() || isLoading}
           >
             <Text style={styles.sendIcon}>↑</Text>
           </Pressable>
