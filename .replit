@@ -11,10 +11,6 @@ integrations = ["javascript_log_in_with_replit:1.0.0", "javascript_openai:1.0.0"
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 34325
-externalPort = 3000
-
 [workflows]
 runButton = "Project"
 
@@ -41,4 +37,5 @@ waitForPort = 5000
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npx", "expo", "start", "--web-only", "--port", "5000", "--no-dev"]
+run = ["npx", "serve", "-s", "dist", "-l", "5000"]
+build = ["npx", "expo", "export", "--platform", "web"]
