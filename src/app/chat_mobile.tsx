@@ -2,34 +2,36 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Platform, SafeAreaView, StatusBar, Image } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
-import { createChatCompletion, SYSTEM_MESSAGE, type OpenAIChatMessage } from '../services/llm';
-import { useConversationStore } from '../store/conversationStore';
-import { Message } from '../types/conversation';
+import { useGlobalChat } from '../hooks/useGlobalChat';
+import { initializeDatabase } from '../lib/db';
 import Markdown from 'react-native-markdown-display';
 import { theme } from '../theme/colors';
 
 export default function ChatScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
   const scrollViewRef = useRef<ScrollView>(null);
-  const { getConversationById, addMessage, addConversation, updateConversation } = useConversationStore();
-  const [inputText, setInputText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   
-  const conversation = conversationId ? getConversationById(conversationId) : undefined;
-  const messages = conversation?.messages || [];
+  const {
+    messages,
+    input,
+    setInput,
+    submit,
+    status,
+    error,
+    isSubmitting
+  } = useGlobalChat({
+    initialId: conversationId as string | undefined,
+  });
   
   useEffect(() => {
-    // Create conversation if it doesn't exist
-    if (conversationId && !conversation) {
-      addConversation({
-        id: conversationId,
-        title: 'New Chat',
-        lastMessage: '',
-        lastUpdated: new Date(),
-        messages: []
-      });
-    }
-  }, [conversationId, conversation, addConversation]);
+    // Initialize database
+    const init = async () => {
+      await initializeDatabase();
+      setIsInitialized(true);
+    };
+    init();
+  }, []);
   
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
@@ -41,74 +43,22 @@ export default function ChatScreen() {
   }, [messages.length]);
 
   const handleSend = async () => {
-    if (!inputText.trim() || isLoading) return;
-    
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputText.trim(),
-      role: 'user',
-      timestamp: new Date(),
-      type: 'text'
-    };
-    
-    const currentInput = inputText.trim();
-    setInputText('');
-    
-    try {
-      if (!conversationId) return;
-      
-      addMessage(conversationId, userMessage);
-      setIsLoading(true);
-      
-      const chatMessages: OpenAIChatMessage[] = [
-        SYSTEM_MESSAGE,
-        ...messages.map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content
-        })),
-        { role: 'user', content: currentInput }
-      ];
-      
-      const response = await createChatCompletion({ messages: chatMessages });
-      
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: response,
-        role: 'assistant',
-        timestamp: new Date(),
-        type: 'text'
-      };
-      
-      addMessage(conversationId, assistantMessage);
-      
-      // Update conversation title if it's the first message
-      if (messages.length === 0) {
-        const title = currentInput.length > 50 ? currentInput.substring(0, 47) + '...' : currentInput;
-        updateConversation(conversationId, { title });
-      }
-      
-    } catch (error) {
-      console.error('Chat error:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+    if (!input.trim() || status !== 'ready' || isSubmitting || !isInitialized) return;
+    await submit();
+  };
+
+  // Show error if there's one
+  useEffect(() => {
+    if (error) {
       Alert.alert(
         'Chat Error', 
-        `Failed to get response: ${errorMsg}\n\nPlease check your internet connection and ensure your OpenAI API key is properly configured.`,
+        'Failed to get response. Please check your internet connection and ensure your OpenAI API key is properly configured.',
         [{ text: 'OK' }]
       );
-      
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: 'Sorry, I encountered an error processing your request. Please try again.',
-        role: 'assistant',
-        timestamp: new Date(),
-        type: 'text'
-      };
-      
-      addMessage(conversationId, errorMessage);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [error]);
+
+  const isLoading = status === 'streaming' || isSubmitting;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -146,11 +96,11 @@ export default function ChatScreen() {
             </View>
             
             <View style={styles.bottomSuggestions}>
-              <Pressable style={styles.suggestionCard} onPress={() => setInputText('Explain a Quranic verse')}>
+              <Pressable style={styles.suggestionCard} onPress={() => setInput('Explain a Quranic verse')}>
                 <Text style={styles.suggestionTitle}>Explain Verse</Text>
                 <Text style={styles.suggestionDesc}>Get detailed explanations</Text>
               </Pressable>
-              <Pressable style={styles.suggestionCard} onPress={() => setInputText('Find a specific hadith')}>
+              <Pressable style={styles.suggestionCard} onPress={() => setInput('Find a specific hadith')}>
                 <Text style={styles.suggestionTitle}>Find Hadith</Text>
                 <Text style={styles.suggestionDesc}>Search prophetic traditions</Text>
               </Pressable>
@@ -158,47 +108,50 @@ export default function ChatScreen() {
           </View>
         )}
         
-        {messages.map((message) => (
-          <View
-            key={message.id}
-            style={[
-              styles.messageBubble,
-              message.role === 'user' ? styles.userBubble : styles.assistantBubble,
-            ]}
-          >
-            {message.role === 'assistant' ? (
-              <Markdown
-                style={{
-                  body: styles.messageText,
-                  code_inline: styles.inlineCode,
-                  code_block: styles.codeBlock,
-                }}
-              >
-                {message.content}
-              </Markdown>
-            ) : (
-              <Text style={styles.userMessageText} selectable>
-                {message.content}
-              </Text>
-            )}
-            <View style={styles.messageFooter}>
-              <Text style={[styles.timestampText, message.role === 'user' && styles.userTimestampText]}>
-                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </Text>
-              {message.role === 'assistant' && (
-                <Pressable 
-                  style={styles.copyButton}
-                  onPress={async () => {
-                    await Clipboard.setStringAsync(message.content);
-                    Alert.alert('Copied', 'Message copied to clipboard');
+        {messages.map((message) => {
+          const content = message.parts?.map(part => part.type === 'text' ? part.text : '').join('') || '';
+          return (
+            <View
+              key={message.id}
+              style={[
+                styles.messageBubble,
+                message.role === 'user' ? styles.userBubble : styles.assistantBubble,
+              ]}
+            >
+              {message.role === 'assistant' ? (
+                <Markdown
+                  style={{
+                    body: styles.messageText,
+                    code_inline: styles.inlineCode,
+                    code_block: styles.codeBlock,
                   }}
                 >
-                  <Text style={styles.copyButtonText}>Copy</Text>
-                </Pressable>
+                  {content}
+                </Markdown>
+              ) : (
+                <Text style={styles.userMessageText} selectable>
+                  {content}
+                </Text>
               )}
+              <View style={styles.messageFooter}>
+                <Text style={[styles.timestampText, message.role === 'user' && styles.userTimestampText]}>
+                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                {message.role === 'assistant' && (
+                  <Pressable 
+                    style={styles.copyButton}
+                    onPress={async () => {
+                      await Clipboard.setStringAsync(content);
+                      Alert.alert('Copied', 'Message copied to clipboard');
+                    }}
+                  >
+                    <Text style={styles.copyButtonText}>Copy</Text>
+                  </Pressable>
+                )}
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
         {isLoading && (
           <View style={styles.typingIndicator}>
             <Text style={styles.typingText}>Usul AI is thinking...</Text>
@@ -211,8 +164,8 @@ export default function ChatScreen() {
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.textInput}
-            value={inputText}
-            onChangeText={setInputText}
+            value={input}
+            onChangeText={setInput}
             placeholder="Ask anything"
             placeholderTextColor={theme.secondary}
             multiline
@@ -225,9 +178,9 @@ export default function ChatScreen() {
             }}
           />
           <Pressable
-            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+            style={[styles.sendButton, !input.trim() && styles.sendButtonDisabled]}
             onPress={handleSend}
-            disabled={!inputText.trim() || isLoading}
+            disabled={!input.trim() || isLoading || !isInitialized}
           >
             <Text style={styles.sendIcon}>↑</Text>
           </Pressable>
