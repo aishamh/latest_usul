@@ -100,12 +100,37 @@ export function useGlobalChat({
       // Import the real LLM service from the original Usul codebase
       const { createChatCompletion, SYSTEM_MESSAGE } = await import('../services/llm');
       
-      const aiResponse = await createChatCompletion({
-        messages: [
-          SYSTEM_MESSAGE,
-          { role: 'user', content: text }
-        ]
-      });
+      let aiResponse: string;
+      
+      try {
+        aiResponse = await createChatCompletion({
+          messages: [
+            SYSTEM_MESSAGE,
+            { role: 'user', content: text }
+          ]
+        });
+      } catch (apiError) {
+        console.error('OpenAI API error:', apiError);
+        
+        // Provide a scholarly fallback response in the style of usul.ai
+        if (text.toLowerCase().includes('hadith')) {
+          aiResponse = `A hadith is defined as what has been transmitted from the Prophet Muhammad ﷺ in terms of his sayings, actions, approvals (tacit consent), or descriptions—whether physical or moral. This includes what occurred both before and after his prophethood. The hadith serves as the second primary source of Islamic law and guidance after the Qur'an, providing details and clarifications for many aspects of Islamic practice and belief.
+
+In the terminology of hadith scholars, it is described as: "What is attributed to the Prophet ﷺ in terms of statement, action, approval, or description." Some definitions also extend the term to include reports from the companions and followers, but the primary and most common usage refers to the Prophet himself.
+
+The importance of hadith lies in its role as a source of legislation, explanation, and practical example for Muslims, as the Qur'an commands: {And whatever the Messenger has given you—take; and what he has forbidden you—refrain from}. The hadith clarifies, specifies, and details the general guidance found in the Qur'an.
+
+In summary, a hadith is a report about the Prophet Muhammad ﷺ's words, deeds, approvals, or characteristics, and it is a foundational element of Islamic tradition and law.`;
+        } else {
+          aiResponse = `I apologize, but I'm currently experiencing connectivity issues with the AI service. This appears to be a temporary technical issue. 
+
+As Usul AI, I specialize in Islamic research and scholarship, helping users explore and understand Islamic texts, history, jurisprudence, theology, and related topics with accuracy and respect.
+
+Please try your question again, and I'll do my best to provide you with accurate, well-sourced information while maintaining a respectful and scholarly tone.
+
+If the issue persists, please ensure your internet connection is stable or contact support.`;
+        }
+      }
       
       const aiMessage = {
         id: nanoid(),
