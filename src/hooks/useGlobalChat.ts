@@ -136,7 +136,7 @@ export function useGlobalChat({
 
 In the terminology of hadith scholars, it is described as: "What is attributed to the Prophet ﷺ in terms of statement, action, approval, or description." Some definitions also extend the term to include reports from the companions and followers, but the primary and most common usage refers to the Prophet himself.
 
-The importance of hadith lies in its role as a source of legislation, explanation, and practical example for Muslims, as the Qur'an commands: {And whatever the Messenger has given you—take; and what he has forbidden you—refrain from}. The hadith clarifies, specifies, and details the general guidance found in the Qur'an.
+The importance of hadith lies in its role as a source of legislation, explanation, and practical example for Muslims, as the Qur'an commands: *"And whatever the Messenger has given you—take; and what he has forbidden you—refrain from"* (Qur'an 59:7). The hadith clarifies, specifies, and details the general guidance found in the Qur'an.
 
 In summary, a hadith is a report about the Prophet Muhammad ﷺ's words, deeds, approvals, or characteristics, and it is a foundational element of Islamic tradition and law.`;
         } else {
