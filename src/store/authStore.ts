@@ -53,11 +53,26 @@ const initializeAuth = async () => {
       const user = JSON.parse(stored);
       useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
     } else {
-      useAuthStore.setState({ isLoading: false });
+      // Auto-login for demo purposes
+      const demoUser: User = {
+        id: 'demo_user_auto',
+        email: 'demo@usul.ai',
+        name: 'Demo User',
+        provider: 'email',
+      };
+      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(demoUser));
+      useAuthStore.setState({ user: demoUser, isAuthenticated: true, isLoading: false });
     }
   } catch (error) {
     console.error('Failed to initialize auth:', error);
-    useAuthStore.setState({ isLoading: false });
+    // Still auto-login even if storage fails
+    const demoUser: User = {
+      id: 'demo_user_auto',
+      email: 'demo@usul.ai', 
+      name: 'Demo User',
+      provider: 'email',
+    };
+    useAuthStore.setState({ user: demoUser, isAuthenticated: true, isLoading: false });
   }
 };
 
@@ -65,6 +80,12 @@ const initializeAuth = async () => {
 if (typeof window !== 'undefined') {
   initializeAuth();
 } else {
-  // For server-side rendering, set loading to false immediately
-  useAuthStore.setState({ isLoading: false });
+  // For server-side rendering, auto-login immediately
+  const demoUser: User = {
+    id: 'demo_user_auto',
+    email: 'demo@usul.ai',
+    name: 'Demo User', 
+    provider: 'email',
+  };
+  useAuthStore.setState({ user: demoUser, isAuthenticated: true, isLoading: false });
 } 

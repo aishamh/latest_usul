@@ -9,12 +9,8 @@ export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
   
   useEffect(() => {
-    // Give the app time to properly initialize
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 100);
-    
-    return () => clearTimeout(timer);
+    // Initialize immediately - no delay needed
+    setIsReady(true);
   }, []);
   
   if (!isReady) {

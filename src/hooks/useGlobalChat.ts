@@ -78,7 +78,7 @@ export function useGlobalChat({
     parts: [{ type: 'text' as const, text: msg.content }]
   })) || [];
 
-  // For now, use a simple mock implementation to test UI
+  // Direct OpenAI integration since API routes don't work on Expo Router web
   const [messages, setMessages] = useState(convertedInitialMessages);
   const [status, setStatus] = useState<'ready' | 'streaming'>('ready');
   const [error, setError] = useState<any>(null);
@@ -88,7 +88,7 @@ export function useGlobalChat({
       setStatus('streaming');
       setError(null);
 
-      // Add user message
+      // Add user message immediately
       const userMessage = {
         id: nanoid(),
         role: 'user' as const,
@@ -97,23 +97,60 @@ export function useGlobalChat({
       
       setMessages(prev => [...prev, userMessage]);
 
-      // Simulate AI response (remove this when API is working)
-      setTimeout(() => {
-        const aiMessage = {
-          id: nanoid(),
-          role: 'assistant' as const,
-          parts: [{ 
-            type: 'text' as const, 
-            text: 'Thank you for your question about Islamic topics. This is a test response while we set up the AI integration. The full AI functionality will be available once the OpenAI API is properly connected.' 
-          }]
-        };
-        
-        setMessages(prev => [...prev, aiMessage]);
-        setStatus('ready');
+      // Import OpenAI client directly for immediate response
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true // Only for demo - use server-side in production
+      });
 
-        // Call onFinish for persistence
-        handleFinish({ message: aiMessage });
-      }, 2000);
+      const chatResponse = await client.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You are Usul AI, an Islamic research assistant created to help users explore and understand Islamic knowledge. Your primary expertise covers:
+
+- Quranic studies and interpretation
+- Hadith analysis and authentication
+- Islamic jurisprudence (fiqh) and legal principles
+- Islamic history and biographies of important figures
+- Arabic language and its relationship to Islamic texts
+- Comparative studies of different Islamic schools of thought
+- Contemporary Islamic issues and their scholarly treatment
+
+Guidelines for your responses:
+- Provide scholarly, well-researched information
+- Cite relevant Quranic verses and authentic hadith when applicable
+- Acknowledge when topics have differences of scholarly opinion
+- Be respectful of different schools of thought within Islam
+- Clarify when discussing matters of scholarly debate
+- Encourage further study and learning
+
+You can also help with general topics, but your specialty is Islamic scholarship and research.`
+          },
+          { role: 'user', content: text }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      });
+
+      const aiResponse = chatResponse.choices?.[0]?.message?.content || 'Sorry, I encountered an error processing your request. Please try again.';
+      
+      const aiMessage = {
+        id: nanoid(),
+        role: 'assistant' as const,
+        parts: [{ 
+          type: 'text' as const, 
+          text: response
+        }]
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+      setStatus('ready');
+
+      // Call onFinish for persistence
+      handleFinish({ message: aiMessage });
 
     } catch (err) {
       console.error('Error sending message:', err);
@@ -128,7 +165,18 @@ export function useGlobalChat({
 
   const regenerate = useCallback(() => {
     // Implement regeneration logic
-  }, []);
+    if (messages.length > 0) {
+      const lastUserMessage = messages[messages.length - 2];
+      if (lastUserMessage?.role === 'user') {
+        // Remove last assistant message and regenerate
+        setMessages(prev => prev.slice(0, -1));
+        const text = lastUserMessage.parts?.[0]?.type === 'text' ? lastUserMessage.parts[0].text : '';
+        if (text) {
+          sendMessage({ text });
+        }
+      }
+    }
+  }, [messages, sendMessage]);
 
   const submit = useCallback(async () => {
     if (!input.trim() || isSubmitting || status !== 'ready') return;

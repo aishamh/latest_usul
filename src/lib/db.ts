@@ -50,6 +50,11 @@ export async function initializeDatabase() {
   }
 }
 
+// Auto-initialize database on web
+if (typeof window !== 'undefined') {
+  initializeDatabase();
+}
+
 // Database operations abstraction
 export const db = {
   chats: {

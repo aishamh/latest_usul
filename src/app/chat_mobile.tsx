@@ -3,15 +3,12 @@ import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Platfo
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import { useGlobalChat } from '../hooks/useGlobalChat';
-import { initializeDatabase } from '../lib/db';
 import Markdown from 'react-native-markdown-display';
 import { theme } from '../theme/colors';
 
 export default function ChatScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
   const scrollViewRef = useRef<ScrollView>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  
   const {
     messages,
     input,
@@ -24,14 +21,6 @@ export default function ChatScreen() {
     initialId: conversationId as string | undefined,
   });
   
-  useEffect(() => {
-    // Initialize database
-    const init = async () => {
-      await initializeDatabase();
-      setIsInitialized(true);
-    };
-    init();
-  }, []);
   
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
@@ -43,7 +32,7 @@ export default function ChatScreen() {
   }, [messages.length]);
 
   const handleSend = async () => {
-    if (!input.trim() || status !== 'ready' || isSubmitting || !isInitialized) return;
+    if (!input.trim() || status !== 'ready' || isSubmitting) return;
     await submit();
   };
 
