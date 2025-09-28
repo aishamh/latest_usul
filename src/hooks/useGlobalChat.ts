@@ -5,6 +5,11 @@ import { db } from "../lib/db";
 import { useChat } from "@ai-sdk/react";
 import { nanoid } from "nanoid";
 
+// Extended message type to include thinking state
+export interface ExtendedUIMessage extends UIMessage {
+  isThinking?: boolean;
+}
+
 type UseChatCoreProps = {
   initialChat?: Chat;
   initialId?: string;
@@ -79,7 +84,7 @@ export function useGlobalChat({
   })) || [];
 
   // Direct OpenAI integration since API routes don't work on Expo Router web
-  const [messages, setMessages] = useState(convertedInitialMessages);
+  const [messages, setMessages] = useState<ExtendedUIMessage[]>(convertedInitialMessages);
   const [status, setStatus] = useState<'ready' | 'streaming'>('ready');
   const [error, setError] = useState<any>(null);
 
@@ -96,6 +101,19 @@ export function useGlobalChat({
       };
       
       setMessages(prev => [...prev, userMessage]);
+      
+      // Add a temporary thinking indicator message
+      const thinkingMessage: ExtendedUIMessage = {
+        id: 'thinking-' + nanoid(),
+        role: 'assistant' as const,
+        parts: [{ 
+          type: 'text' as const, 
+          text: '...' 
+        }],
+        isThinking: true
+      };
+      
+      setMessages(prev => [...prev, thinkingMessage]);
 
       // Import the real LLM service from the original Usul codebase
       const { createChatCompletion, SYSTEM_MESSAGE } = await import('../services/llm');
@@ -141,7 +159,11 @@ If the issue persists, please ensure your internet connection is stable or conta
         }]
       };
       
-      setMessages(prev => [...prev, aiMessage]);
+      // Replace the thinking message with the actual response
+      setMessages(prev => {
+        const filtered = prev.filter(msg => !msg.isThinking);
+        return [...filtered, aiMessage];
+      });
       setStatus('ready');
 
       // Call onFinish for persistence
@@ -149,6 +171,10 @@ If the issue persists, please ensure your internet connection is stable or conta
 
     } catch (err) {
       console.error('Error sending message:', err);
+      
+      // Remove thinking message on error
+      setMessages(prev => prev.filter(msg => !msg.isThinking));
+      
       setError(err);
       setStatus('ready');
     }

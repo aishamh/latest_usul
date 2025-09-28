@@ -8,6 +8,13 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Updates
 
+## September 28, 2025
+- **Enhanced Thinking Indicator Implementation**: Added proper thinking/typing indicators during AI response generation matching original Usul repository patterns
+- **Message Flow Optimization**: Implemented inline thinking messages that show "Done. Searching for answers" with animated dots while AI processes requests
+- **Real-time Chat Feedback**: Enhanced user experience with immediate visual feedback during message processing
+- **Error Handling Improvements**: Added proper cleanup of thinking indicators during API failures to maintain clean UI state
+- **Authentic Chat Experience**: Now matches the sophisticated interaction patterns of the original usul.ai platform
+
 ## September 20, 2025
 - **Usul.ai Aesthetic Implementation**: Updated login interface to match usul.ai's sophisticated dark theme color palette and scholarly design aesthetic
 - **Enhanced Authentication UI**: Applied professional Islamic research platform branding with proper typography and visual hierarchy  

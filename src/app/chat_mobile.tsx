@@ -99,6 +99,8 @@ export default function ChatScreen() {
         
         {messages.map((message) => {
           const content = message.parts?.map(part => part.type === 'text' ? part.text : '').join('') || '';
+          const isThinking = (message as any).isThinking;
+          
           return (
             <View
               key={message.id}
@@ -107,7 +109,17 @@ export default function ChatScreen() {
                 message.role === 'user' ? styles.userBubble : styles.assistantBubble,
               ]}
             >
-              {message.role === 'assistant' ? (
+              {message.role === 'assistant' && isThinking ? (
+                <View style={styles.thinkingContainer}>
+                  <Text style={styles.thinkingText}>Done. Searching for </Text>
+                  <Text style={styles.thinkingQuery}>answers</Text>
+                  <View style={styles.thinkingDots}>
+                    <View style={[styles.dot, styles.dot1]} />
+                    <View style={[styles.dot, styles.dot2]} />
+                    <View style={[styles.dot, styles.dot3]} />
+                  </View>
+                </View>
+              ) : message.role === 'assistant' ? (
                 <Markdown
                   style={{
                     body: styles.messageText,
@@ -122,30 +134,27 @@ export default function ChatScreen() {
                   {content}
                 </Text>
               )}
-              <View style={styles.messageFooter}>
-                <Text style={[styles.timestampText, message.role === 'user' && styles.userTimestampText]}>
-                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-                {message.role === 'assistant' && (
-                  <Pressable 
-                    style={styles.copyButton}
-                    onPress={async () => {
-                      await Clipboard.setStringAsync(content);
-                      Alert.alert('Copied', 'Message copied to clipboard');
-                    }}
-                  >
-                    <Text style={styles.copyButtonText}>Copy</Text>
-                  </Pressable>
-                )}
-              </View>
+              {!isThinking && (
+                <View style={styles.messageFooter}>
+                  <Text style={[styles.timestampText, message.role === 'user' && styles.userTimestampText]}>
+                    {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                  {message.role === 'assistant' && (
+                    <Pressable 
+                      style={styles.copyButton}
+                      onPress={async () => {
+                        await Clipboard.setStringAsync(content);
+                        Alert.alert('Copied', 'Message copied to clipboard');
+                      }}
+                    >
+                      <Text style={styles.copyButtonText}>Copy</Text>
+                    </Pressable>
+                  )}
+                </View>
+              )}
             </View>
           );
         })}
-        {isLoading && (
-          <View style={styles.typingIndicator}>
-            <Text style={styles.typingText}>Usul AI is thinking...</Text>
-          </View>
-        )}
       </ScrollView>
 
       {/* Input Area */}
@@ -399,6 +408,43 @@ const styles = StyleSheet.create({
     color: theme.secondary,
     fontSize: 10,
     fontWeight: '500',
+  },
+  thinkingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  thinkingText: {
+    color: theme.secondary,
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  thinkingQuery: {
+    color: theme.accent,
+    fontSize: 14,
+    fontStyle: 'italic',
+    fontWeight: '500',
+  },
+  thinkingDots: {
+    flexDirection: 'row',
+    marginLeft: 8,
+    alignItems: 'center',
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: theme.accent,
+    marginHorizontal: 1,
+  },
+  dot1: {
+    opacity: 0.7,
+  },
+  dot2: {
+    opacity: 0.5,
+  },
+  dot3: {
+    opacity: 0.3,
   },
   inlineCode: {
     backgroundColor: theme.surface,
