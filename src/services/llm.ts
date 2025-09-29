@@ -14,12 +14,16 @@ export interface CreateChatCompletionParams {
 export async function createChatCompletion(params: CreateChatCompletionParams): Promise<string> {
   const { messages, signal } = params;
 
-  // Get API key from environment variables only
-  const apiKey = process.env.OPENAI_API_KEY;
+  // Get API key from environment variables - works in both Node and Expo
+  const apiKey = process.env.OPENAI_API_KEY || Constants.expoConfig?.extra?.OPENAI_API_KEY;
   
   if (!apiKey) {
+    console.error('Available environment variables:', Object.keys(process.env));
+    console.error('Constants.expoConfig:', Constants.expoConfig?.extra);
     throw new Error('OpenAI API key not configured. Please add OPENAI_API_KEY to your environment variables.');
   }
+  
+  console.log('✓ OpenAI API key found, length:', apiKey.length);
 
   const url = 'https://api.openai.com/v1/chat/completions';
 
@@ -42,6 +46,9 @@ export async function createChatCompletion(params: CreateChatCompletionParams): 
   if (!response.ok) {
     const text = await response.text().catch(() => 'Unknown error');
     let errorMessage = `Request failed (${response.status})`;
+    
+    console.error('OpenAI API Response Status:', response.status);
+    console.error('OpenAI API Response Text:', text);
     
     try {
       const errorData = JSON.parse(text);

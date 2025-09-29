@@ -129,6 +129,12 @@ export function useGlobalChat({
         });
       } catch (apiError) {
         console.error('OpenAI API error:', apiError);
+        const error = apiError as Error;
+        console.error('API error details:', {
+          message: error?.message || 'Unknown error',
+          name: error?.name || 'Unknown',
+          stack: error?.stack || 'No stack trace'
+        });
         
         // Provide a scholarly fallback response in the style of usul.ai
         if (text.toLowerCase().includes('hadith')) {
