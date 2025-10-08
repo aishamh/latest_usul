@@ -35,30 +35,98 @@ export async function createChatCompletion(params: CreateChatCompletionParams): 
 
   const decoder = new TextDecoder();
   let fullText = '';
+  let buffer = '';
+  let hasCompleted = false;
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
     
-    const chunk = decoder.decode(value, { stream: true });
-    const lines = chunk.split('\n').filter(line => line.trim());
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
     
-    for (const line of lines) {
-      if (line.startsWith('0:')) {
-        try {
-          const jsonStr = line.slice(2);
-          const parsed = JSON.parse(jsonStr);
-          if (typeof parsed === 'string') {
-            fullText += parsed;
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+      
+      if (line.startsWith('data:')) {
+        line = line.slice(5).trim();
+      } else if (line.startsWith('event:')) {
+        continue;
+      }
+      
+      try {
+        if (line.startsWith('0:')) {
+          const jsonStr = line.slice(2).trim();
+          if (jsonStr.startsWith('"') && jsonStr.endsWith('"')) {
+            const text = JSON.parse(jsonStr);
+            fullText += text;
           }
-        } catch (e) {
+        } else {
+          const parsed = JSON.parse(line);
+          
+          function extractText(obj: any): string {
+            if (typeof obj === 'string') return obj;
+            if (!obj) return '';
+            
+            if (Array.isArray(obj)) {
+              return obj.map((item: any) => extractText(item)).join('');
+            }
+            
+            if (typeof obj !== 'object') return '';
+            
+            if (obj.text) return obj.text;
+            if (obj.text_delta) return obj.text_delta;
+            if (obj.textDelta) return obj.textDelta;
+            if (obj.value && typeof obj.value === 'string') return obj.value;
+            
+            const keysToCheck = ['delta', 'data', 'response', 'output_text', 'message', 'messages', 'content'];
+            
+            for (const key of keysToCheck) {
+              if (obj[key]) {
+                const text = extractText(obj[key]);
+                if (text) return text;
+              }
+            }
+            
+            return '';
+          }
+          
+          function checkCompletion(obj: any): boolean {
+            if (!obj) return false;
+            if (Array.isArray(obj)) {
+              return obj.some(item => checkCompletion(item));
+            }
+            if (typeof obj === 'object') {
+              if (obj.type === 'response.completed' || obj.type === 'response.completed_message') {
+                return true;
+              }
+              return Object.values(obj).some(val => checkCompletion(val));
+            }
+            return false;
+          }
+          
+          const extractedText = extractText(parsed);
+          if (extractedText) {
+            fullText += extractedText;
+          }
+          
+          if (checkCompletion(parsed)) {
+            hasCompleted = true;
+          }
         }
+      } catch (e) {
+        console.warn('Failed to parse stream line:', line, e);
       }
     }
   }
 
   if (!fullText) {
-    throw new Error('No response content received from the model');
+    if (!hasCompleted) {
+      throw new Error('No response content received from the model');
+    }
+    console.warn('Stream completed but no text was extracted');
   }
 
   return fullText;
