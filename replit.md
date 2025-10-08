@@ -8,6 +8,14 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Updates
 
+## October 8, 2025
+- **AI-SDK Integration**: Replaced direct OpenAI API calls with Vercel AI SDK (ai-sdk) for improved streaming and better developer experience
+- **Dual Server Architecture**: Implemented separate Express API server (api-server.js) running on port 3001 alongside Expo dev server for proper backend/frontend separation
+- **Unauthenticated Client Access**: Users can now chat without authentication - OpenAI API key is securely managed server-side only
+- **Advanced Stream Parsing**: Built comprehensive recursive parser that handles all ai-sdk DataStream formats including nested envelopes, arrays, and SSE (Server-Sent Events) protocol
+- **Production-Ready Streaming**: Implemented proper buffer management, completion tracking, and error handling for real-time AI responses
+- **CORS Support**: Added cross-origin resource sharing for seamless development workflow between Expo web client and API server
+
 ## September 28, 2025
 - **Enhanced Thinking Indicator Implementation**: Added proper thinking/typing indicators during AI response generation matching original Usul repository patterns
 - **Message Flow Optimization**: Implemented inline thinking messages that show "Done. Searching for answers" with animated dots while AI processes requests
@@ -56,9 +64,12 @@ Preferred communication style: Simple, everyday language.
 - **State Synchronization**: Automatic persistence of conversation updates
 
 ## External Service Integration
-- **AI Model**: OpenAI GPT-4 integration with streaming capabilities
-- **Error Handling**: Comprehensive error management for API failures
+- **AI Model**: Vercel AI SDK (ai-sdk) with OpenAI GPT-4 Turbo for intelligent responses
+- **Architecture**: Separate Express API server (port 3001) handles all AI requests with streaming support
+- **Security**: OpenAI API key stored server-side only, client makes unauthenticated HTTP requests
+- **Error Handling**: Comprehensive error management for API failures with fallback responses
 - **Request Management**: Abort controller support for request cancellation
+- **Streaming**: Advanced DataStream parsing with support for SSE format, nested structures, and arrays
 
 # External Dependencies
 
@@ -78,8 +89,12 @@ Preferred communication style: Simple, everyday language.
 - **expo-secure-store**: Encrypted storage for sensitive data
 
 ## AI and API Integration
-- **openai**: Official OpenAI API client for GPT-4 integration
-- **Environment Variables**: OpenAI API key configuration through environment variables
+- **ai**: Vercel AI SDK for streaming AI responses with DataStream protocol
+- **@ai-sdk/openai**: OpenAI provider for AI SDK with GPT-4 Turbo model
+- **@ai-sdk/react**: React hooks for AI SDK integration (installed but not currently used)
+- **cors**: Cross-Origin Resource Sharing middleware for API server
+- **express**: Web server framework for API endpoints
+- **Environment Variables**: OpenAI API key configuration through environment variables (server-side only)
 
 ## Authentication Services
 - **expo-apple-authentication**: Apple Sign-In integration
