@@ -1,5 +1,3 @@
-import Constants from 'expo-constants';
-
 export type OpenAIChatMessage = {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -10,68 +8,62 @@ export interface CreateChatCompletionParams {
   signal?: AbortSignal;
 }
 
-// Using OpenAI GPT-4 as it's widely available and reliable
 export async function createChatCompletion(params: CreateChatCompletionParams): Promise<string> {
   const { messages, signal } = params;
 
-  // Get API key from environment variables - works in both Node and Expo
-  const apiKey = process.env.OPENAI_API_KEY || Constants.expoConfig?.extra?.OPENAI_API_KEY;
-  
-  if (!apiKey) {
-    console.error('Available environment variables:', Object.keys(process.env));
-    console.error('Constants.expoConfig:', Constants.expoConfig?.extra);
-    throw new Error('OpenAI API key not configured. Please add OPENAI_API_KEY to your environment variables.');
-  }
-  
-  console.log('✓ OpenAI API key found, length:', apiKey.length);
+  const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+  console.log('Calling AI API at:', apiBaseUrl);
 
-  const url = 'https://api.openai.com/v1/chat/completions';
-
-  const response = await fetch(url, {
+  const response = await fetch(`${apiBaseUrl}/api/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model: 'gpt-4', // Using GPT-4 for reliability
-      messages,
-      max_tokens: 2048, // Correct parameter name
-      temperature: 0.7,
-      stream: false,
-    }),
+    body: JSON.stringify({ messages }),
     signal,
   });
 
   if (!response.ok) {
-    const text = await response.text().catch(() => 'Unknown error');
-    let errorMessage = `Request failed (${response.status})`;
-    
-    console.error('OpenAI API Response Status:', response.status);
-    console.error('OpenAI API Response Text:', text);
-    
-    try {
-      const errorData = JSON.parse(text);
-      if (errorData.error?.message) {
-        errorMessage = errorData.error.message;
-      }
-    } catch {
-      // Use the raw text if JSON parsing fails
-      if (text) errorMessage = text;
-    }
-    
-    throw new Error(errorMessage);
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `Request failed (${response.status})`);
   }
 
-  const data = await response.json();
-  const content = data?.choices?.[0]?.message?.content ?? '';
-  if (!content) {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error('No response body');
+  }
+
+  const decoder = new TextDecoder();
+  let fullText = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n').filter(line => line.trim());
+    
+    for (const line of lines) {
+      if (line.startsWith('0:')) {
+        try {
+          const jsonStr = line.slice(2);
+          const parsed = JSON.parse(jsonStr);
+          if (typeof parsed === 'string') {
+            fullText += parsed;
+          }
+        } catch (e) {
+        }
+      }
+    }
+  }
+
+  if (!fullText) {
     throw new Error('No response content received from the model');
   }
-  return content as string;
+
+  return fullText;
 }
 
-// Islamic research assistant system message inspired by usul.ai
 export const SYSTEM_MESSAGE: OpenAIChatMessage = {
   role: 'system',
   content: `You are Usul AI, an intelligent assistant specialized in Islamic research and scholarship. You provide access to and analysis of classical Islamic texts with academic rigor and precision.
@@ -111,4 +103,4 @@ For EVERY response involving Islamic knowledge, you MUST provide specific citati
 Remember: Academic credibility depends on precise sourcing. Every claim about Islamic teachings must be backed by verifiable references to primary sources, just as real Islamic scholars do.
 
 You can help with general questions, but Islamic topics require the scholarly citation standards above.`
-}; 
+};
