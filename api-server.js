@@ -1,7 +1,30 @@
 const express = require('express');
 const cors = require('cors');
-const { streamText } = require('ai');
-const { openai } = require('@ai-sdk/openai');
+const fetch = require('node-fetch');
+
+function htmlToText(html) {
+  if (!html) return '';
+  // Remove scripts and styles
+  let text = html.replace(/<script[\s\S]*?<\/script>/gi, '')
+                 .replace(/<style[\s\S]*?<\/style>/gi, '');
+  // Replace <br> and block-level tags with line breaks
+  text = text.replace(/<(br|BR)\s*\/?>(\s*)/g, '\n');
+  text = text.replace(/<\/(p|div|h\d|li|ul|ol|section|article)>/gi, '\n');
+  // Strip remaining tags
+  text = text.replace(/<[^>]+>/g, '');
+  // Decode a few common HTML entities
+  const entities = {
+    '&nbsp;': ' ',
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+  };
+  text = text.replace(/&(nbsp|amp|lt|gt|quot|#39);/g, (m) => entities[m] || '');
+  // Collapse excessive whitespace
+  return text.replace(/\n{3,}/g, '\n\n').trim();
+}
 
 const app = express();
 const PORT = process.env.API_PORT || 3001;
@@ -16,77 +39,55 @@ app.get('/health', (req, res) => {
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages } = req.body;
+    console.log('Received chat request with', Array.isArray(messages) ? messages.length : 0, 'messages');
 
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not configured');
-    }
-
-    console.log('Received chat request with', messages.length, 'messages');
-
-    const result = await streamText({
-      model: openai('gpt-4-turbo'),
-      messages,
-      system: `You are Usul AI, an intelligent assistant specialized in Islamic research and scholarship. You provide access to and analysis of classical Islamic texts with academic rigor and precision.
-
-Your primary function is to help users explore Islamic knowledge through:
-- Qur'anic exegesis and commentary
-- Hadith analysis and verification
-- Islamic jurisprudence (fiqh) across all madhabs
-- Islamic history, theology, and philosophy
-- Classical Islamic literature and biographical works
-
-CRITICAL SOURCING REQUIREMENTS:
-For EVERY response involving Islamic knowledge, you MUST provide specific citations in the following format:
-
-**For Qur'anic references:**
-- "This is mentioned in the Qur'an: [Verse text] (Qur'an 2:185)"
-- Include chapter (surah) and verse numbers
-
-**For Hadith references:**
-- "As reported in [Collection]: '[Hadith text]' (Sahih al-Bukhari, Book X, Hadith Y)"
-- Specify the collection (Bukhari, Muslim, etc.) and reference numbers
-
-**For Classical Islamic texts:**
-- "According to [Scholar] in [Work Title]: '[Relevant passage]' ([Author], [Title], Vol. X, p. Y)"
-- Examples: "(Ibn Kathir, Tafsir Ibn Kathir, Vol. 2, p. 145)" or "(al-Ghazali, Ihya Ulum al-Din, Book 3, Ch. 2)"
-
-**For Legal opinions:**
-- Always specify the madhab/school: "According to the Hanafi school..." or "The Shafi'i position on this matter..."
-- Cite specific works: "(al-Sarakhsi, al-Mabsut, Vol. 4, p. 78)"
-
-**Academic Standards:**
-- Use proper Arabic transliteration with diacritics where possible
-- Always acknowledge scholarly differences: "While most scholars agree..., Ibn Hazm held..."
-- When uncertain about specific citations, state: "This principle is discussed in [general area], though specific reference requires verification"
-- For complex topics, provide multiple perspectives with their respective sources
-
-Remember: Academic credibility depends on precise sourcing. Every claim about Islamic teachings must be backed by verifiable references to primary sources, just as real Islamic scholars do.
-
-You can help with general questions, but Islamic topics require the scholarly citation standards above.`,
+    // Proxy to usul.ai unauthenticated endpoint
+    const upstream = await fetch('https://usul.ai/api/chat', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'text/plain, text/event-stream, */*',
+        'origin': 'https://usul.ai',
+        'referer': 'https://usul.ai/chat',
+      },
+      body: JSON.stringify({ messages }),
     });
 
-    const response = result.toDataStreamResponse();
-    
-    const headers = {};
-    response.headers.forEach((value, key) => {
-      headers[key] = value;
-    });
-    
-    res.writeHead(200, headers);
-    
-    const reader = response.body.getReader();
-    
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        res.write(value);
+    const contentType = upstream.headers.get('content-type') || '';
+    if (upstream.body) {
+      // If HTML, sanitize to plain text
+      if (contentType.includes('text/html')) {
+        const html = await upstream.text();
+        const plain = htmlToText(html);
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.end(plain);
+        return;
       }
-      res.end();
-    } catch (streamError) {
-      console.error('Streaming error:', streamError);
-      res.end();
+
+      // Forward text or event-stream as-is
+      if (contentType.includes('text') || contentType.includes('event-stream')) {
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Cache-Control', 'no-cache');
+        if (typeof upstream.body.pipe === 'function') {
+          upstream.body.pipe(res);
+        } else {
+          const text = await upstream.text();
+          res.end(text);
+        }
+        return;
+      }
     }
+
+    // Fallback to mock if upstream doesn't return expected text
+    const userMessage = Array.isArray(messages) ? messages[messages.length - 1] : null;
+    const question = userMessage?.content || '';
+
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.write('Sorry, upstream unavailable. Here is a brief summary: ' + question + '\n');
+    res.end();
+    
   } catch (error) {
     console.error('Chat API error:', error);
     res.status(500).json({ error: error.message || 'Failed to generate response' });

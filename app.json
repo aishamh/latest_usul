@@ -5,13 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "platforms": ["ios", "android", "web"],
-    "icon": "./assets/icon.png",
+    "icon": "./assets/usul_icon.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#F9F9F9",
     "primaryColor": "#A0635D",
     "scheme": "usul",
     "splash": {
-      "image": "./assets/icon.png",
+      "image": "./assets/usul_icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#F9F9F9"
     },
@@ -25,7 +25,7 @@
         "iosVersion": "17.0"
       },
       "infoPlist": {
-        "CFBundleDisplayName": "Usul AI",
+        "CFBundleDisplayName": "Usul",
         "UIRequiredDeviceCapabilities": ["armv7"],
         "UIRequiresFullScreen": true,
         "UILaunchStoryboardName": "SplashScreen",

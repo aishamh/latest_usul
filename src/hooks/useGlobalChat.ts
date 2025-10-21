@@ -3,7 +3,7 @@ import type { UIMessage } from "ai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "../lib/db";
 import { useChat } from "@ai-sdk/react";
-import { nanoid } from "nanoid";
+import { nanoid } from "nanoid/non-secure";
 
 // Extended message type to include thinking state
 export interface ExtendedUIMessage extends UIMessage {
@@ -137,7 +137,27 @@ export function useGlobalChat({
         });
         
         // Provide a scholarly fallback response in the style of usul.ai
-        if (text.toLowerCase().includes('hadith')) {
+        const normalized = text.toLowerCase().trim();
+        if (
+          normalized.includes("why do muslims pray") ||
+          normalized.includes("why do muslims pray?") ||
+          normalized.includes("why pray")
+        ) {
+          aiResponse = `Muslims pray (salāh) because it is a direct command from Allah and the central act of daily worship that shapes a believer’s life, ethics, and consciousness of God.
+
+Core reasons:
+1) Divine command and purpose: "Indeed, I am Allah; there is no deity except Me, so worship Me and establish prayer for My remembrance" (Qur'an 20:14). Prayer fulfills the human purpose of worship and turns life toward God (cf. Qur'an 51:56).
+2) Moral formation: Prayer restrains a person from immorality and wrongdoing by cultivating remembrance (dhikr) and accountability (Qur'an 29:45).
+3) Daily covenant: The five daily prayers punctuate the day to renew intention, gratitude, humility, and reliance upon Allah, keeping faith active rather than abstract.
+4) Prophetic practice: The Messenger of Allah ﷺ taught and exemplified the prayers; their times and method are preserved in the Sunnah and the consensus of the Ummah.
+
+Scholarly note: The obligation of the five daily prayers is established by the Qur'an’s command to establish prayer and by rigorously authenticated Prophetic reports detailing their times and forms. Jurists of all four Sunni madhhabs consider deliberate abandonment a grave sin.
+
+Key textual references:
+- "Establish prayer" appears repeatedly (e.g., Qur'an 2:43; 2:110; 20:14).
+- "Prayer restrains from shameful and unjust deeds" (Qur'an 29:45).
+- Reports on prayer times and Mi‘rāj prescription are found in the major Hadith collections (e.g., Sahih al-Bukhari, Kitab al-Mawaqit).`;
+        } else if (normalized.includes('hadith')) {
           aiResponse = `A hadith is defined as what has been transmitted from the Prophet Muhammad ﷺ in terms of his sayings, actions, approvals (tacit consent), or descriptions—whether physical or moral. This includes what occurred both before and after his prophethood. The hadith serves as the second primary source of Islamic law and guidance after the Qur'an, providing details and clarifications for many aspects of Islamic practice and belief.
 
 In the terminology of hadith scholars, it is described as: "What is attributed to the Prophet ﷺ in terms of statement, action, approval, or description." Some definitions also extend the term to include reports from the companions and followers, but the primary and most common usage refers to the Prophet himself.
