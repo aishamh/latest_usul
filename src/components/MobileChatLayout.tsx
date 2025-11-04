@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, Pressable, StyleSheet, SafeAreaView, StatusBar, Image } from 'react-native';
 import { theme } from '../theme/colors';
 
 interface MobileChatLayoutProps {
@@ -22,7 +22,11 @@ export const MobileChatLayout: React.FC<MobileChatLayoutProps> = ({ children }) 
           <Text style={styles.menuIcon}>☰</Text>
         </Pressable>
         
-        <Text style={styles.appTitle}>Usul AI</Text>
+        <Image 
+          source={require('../../assets/usul_icon.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         
         <Pressable style={styles.shareButton}>
           <Text style={styles.shareIcon}>⚪</Text>
@@ -66,6 +70,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: theme.primary,
+  },
+  logoImage: {
+    width: 28,
+    height: 28,
   },
   shareButton: {
     width: 40,

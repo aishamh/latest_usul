@@ -2,6 +2,8 @@ import type { Chat, StoredMessage } from "../lib/db";
 import type { UIMessage } from "ai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "../lib/db";
+import { auth } from "../lib/firebase";
+import { upsertUserConversation, addUserMessage } from "../lib/firestoreChat";
 import { useChat } from "@ai-sdk/react";
 import { nanoid } from "nanoid/non-secure";
 
@@ -43,6 +45,16 @@ export function useGlobalChat({
           messages: [...existingChat.messages, storedMessage],
           updatedAt: new Date(),
         });
+
+        // Persist assistant message to Firestore as well
+        if (auth.currentUser && options.message.role === 'assistant') {
+          await addUserMessage({
+            uid: auth.currentUser.uid,
+            conversationId: chatRef.current.id,
+            role: 'assistant',
+            content: storedMessage.content,
+          });
+        }
       }
     } catch (error) {
       console.error('Error saving message:', error);
@@ -67,6 +79,13 @@ export function useGlobalChat({
       
       try {
         await db.chats.add(newChat);
+        if (auth.currentUser) {
+          await upsertUserConversation({
+            uid: auth.currentUser.uid,
+            conversationId: newId,
+            title: input,
+          });
+        }
       } catch (error) {
         console.error('Error creating chat:', error);
       }
@@ -125,7 +144,9 @@ export function useGlobalChat({
           messages: [
             SYSTEM_MESSAGE,
             { role: 'user', content: text }
-          ]
+          ],
+          chatId: chatRef.current?.id,
+          locale: 'en'
         });
       } catch (apiError) {
         console.error('OpenAI API error:', apiError);
@@ -250,6 +271,16 @@ If the issue persists, please ensure your internet connection is stable or conta
             updatedAt: new Date(),
           });
         }
+      }
+
+      // Save to Firestore for cross-device
+      if (auth.currentUser) {
+        await addUserMessage({
+          uid: auth.currentUser.uid,
+          conversationId: currentChatId,
+          role: 'user',
+          content: input,
+        });
       }
 
       // Send message via AI SDK

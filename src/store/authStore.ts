@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 export interface User {
   id: string;
@@ -45,47 +47,43 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   setLoading: (isLoading: boolean) => set({ isLoading }),
 }));
 
-// Initialize auth state from storage
+// Subscribe to Firebase auth state and hydrate from storage as fallback
 const initializeAuth = async () => {
   try {
+    // First, try to hydrate from storage to avoid flicker
     const stored = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
     if (stored) {
       const user = JSON.parse(stored);
       useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
     } else {
-      // Auto-login for demo purposes
-      const demoUser: User = {
-        id: 'demo_user_auto',
-        email: 'demo@usul.ai',
-        name: 'Demo User',
-        provider: 'email',
-      };
-      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(demoUser));
-      useAuthStore.setState({ user: demoUser, isAuthenticated: true, isLoading: false });
+      useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: true });
     }
-  } catch (error) {
-    console.error('Failed to initialize auth:', error);
-    // Still auto-login even if storage fails
-    const demoUser: User = {
-      id: 'demo_user_auto',
-      email: 'demo@usul.ai', 
-      name: 'Demo User',
-      provider: 'email',
-    };
-    useAuthStore.setState({ user: demoUser, isAuthenticated: true, isLoading: false });
+  } catch {
+    useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: true });
   }
+
+  onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      const unified: User = {
+        id: firebaseUser.uid,
+        email: firebaseUser.email || 'unknown@user',
+        name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : 'User'),
+        provider: (firebaseUser.providerData?.[0]?.providerId?.includes('apple')
+          ? 'apple'
+          : firebaseUser.providerData?.[0]?.providerId?.includes('google')
+            ? 'google'
+            : 'email') as User['provider'],
+        avatar: firebaseUser.photoURL || undefined,
+      };
+      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(unified));
+      useAuthStore.setState({ user: unified, isAuthenticated: true, isLoading: false });
+    } else {
+      await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+      useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: false });
+    }
+  });
 };
 
-// Initialize when running in browser environment
 if (typeof window !== 'undefined') {
   initializeAuth();
-} else {
-  // For server-side rendering, auto-login immediately
-  const demoUser: User = {
-    id: 'demo_user_auto',
-    email: 'demo@usul.ai',
-    name: 'Demo User', 
-    provider: 'email',
-  };
-  useAuthStore.setState({ user: demoUser, isAuthenticated: true, isLoading: false });
-} 
+}

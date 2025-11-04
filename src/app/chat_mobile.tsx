@@ -58,7 +58,11 @@ export default function ChatScreen() {
         <Pressable style={styles.menuButton}>
           <Text style={styles.menuIcon}>☰</Text>
         </Pressable>
-        <Text style={styles.appTitle}>Usul AI</Text>
+        <Image 
+          source={require('../../assets/usul_icon.png')}
+          style={styles.headerLogo}
+          resizeMode="contain"
+        />
         <Pressable style={styles.moreButton}>
           <Text style={styles.moreIcon}>⋯</Text>
         </Pressable>
@@ -218,6 +222,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: theme.primary,
+  },
+  headerLogo: {
+    width: 28,
+    height: 28,
   },
   moreButton: {
     width: 40,

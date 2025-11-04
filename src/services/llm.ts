@@ -6,13 +6,20 @@ export type OpenAIChatMessage = {
 export interface CreateChatCompletionParams {
   messages: OpenAIChatMessage[];
   signal?: AbortSignal;
+  chatId?: string;
+  bookIds?: string[];
+  authorIds?: string[];
+  genreIds?: string[];
+  isRetry?: boolean;
+  locale?: 'en' | 'ar';
 }
 
 export async function createChatCompletion(params: CreateChatCompletionParams): Promise<string> {
-  const { messages, signal } = params;
+  const { messages, signal, chatId, bookIds, authorIds, genreIds, isRetry, locale } = params;
 
-  // Use Usul's public API per upstream hook (multi-chat endpoint)
-  const apiUrl = `https://api.usul.ai/chat/multi?locale=en`;
+  // Prefer Azure backend from Swagger docs; allow override via Expo env
+  const baseUrl = (process as any).env?.EXPO_PUBLIC_USUL_API || 'https://usul-api-fqhbhse7dvbydgg8.eastus-01.azurewebsites.net';
+  const apiUrl = `${baseUrl}/chat/multi${(locale || 'en') ? `?locale=${encodeURIComponent(locale || 'en')}` : ''}`;
   console.log('Calling AI API at:', apiUrl);
 
   const usulMessages = messages.filter(m => m.role === 'user' || m.role === 'assistant');
@@ -21,8 +28,16 @@ export async function createChatCompletion(params: CreateChatCompletionParams): 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'text/event-stream, application/json;q=0.9, */*;q=0.8',
     },
-    body: JSON.stringify({ messages: usulMessages }),
+    body: JSON.stringify({ 
+      messages: usulMessages,
+      chatId,
+      bookIds,
+      authorIds,
+      genreIds,
+      isRetry: Boolean(isRetry),
+    }),
     signal,
   });
 

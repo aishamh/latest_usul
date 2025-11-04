@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Alert, Platform, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore, User } from '../store/authStore';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -7,15 +7,20 @@ import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { GoogleIcon } from '../components/GoogleIcon';
 import { AppleIcon } from '../components/AppleIcon';
+import { theme } from '../theme/colors';
+import { auth } from '../lib/firebase';
+import { GoogleAuthProvider, OAuthProvider, signInWithCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import * as Crypto from 'expo-crypto';
+import { saveUserProfile } from '../lib/firestoreChat';
 
 WebBrowser.maybeCompleteAuthSession();
-
-import { theme } from '../theme/colors';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isAuthenticated } = useAuthStore();
   const [selectedAction, setSelectedAction] = useState<'login' | 'signup' | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   
   useEffect(() => {
     if (isAuthenticated) {
@@ -23,41 +28,79 @@ export default function LoginScreen() {
     }
   }, [isAuthenticated, router]);
 
-  const handleEmailLogin = () => {
-    // For demo purposes - in production this would show an email/password form
-    const user: User = {
-      id: 'demo_user_' + Date.now(),
-      email: 'user@example.com',
-      name: 'Demo User',
-      provider: 'email',
-    };
-    login(user);
-    router.replace('/');
+  const handleEmailLogin = async () => {
+    try {
+      if (!email || !password) {
+        Alert.alert('Missing info', 'Please enter both email and password.');
+        return;
+      }
+
+      const cred = selectedAction === 'signup'
+        ? await createUserWithEmailAndPassword(auth, email.trim(), password)
+        : await signInWithEmailAndPassword(auth, email.trim(), password);
+
+      const u = cred.user;
+      await saveUserProfile({
+        uid: u.uid,
+        email: u.email,
+        name: u.displayName || null,
+        avatar: u.photoURL || null,
+        provider: 'email',
+      });
+
+      const signedIn: User = {
+        id: u.uid,
+        email: u.email || email.trim(),
+        name: u.displayName || email.trim().split('@')[0],
+        provider: 'email',
+        avatar: u.photoURL || undefined,
+      };
+      login(signedIn);
+      router.replace('/');
+    } catch (error: any) {
+      const msg = error?.message || 'Email authentication failed.';
+      Alert.alert('Error', msg);
+    }
   };
 
   const handleGoogleLogin = async () => {
     try {
-      // For demo purposes - in production this would use Google OAuth
-      Alert.alert(
-        'Demo Mode',
-        'Google login would integrate with Google OAuth in production. Using demo login.',
-        [
-          {
-            text: 'Continue with Demo',
-            onPress: () => {
-              const user: User = {
-                id: 'google_user_' + Date.now(),
-                email: 'user@gmail.com',
-                name: 'Google User',
-                provider: 'google',
-              };
-              login(user);
-              router.replace('/');
-            }
-          },
-          { text: 'Cancel', style: 'cancel' }
-        ]
-      );
+      const clientId = (process as any).env?.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
+      const iosClientId = (process as any).env?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+      const webClientId = (process as any).env?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+      const resolvedClientId = Platform.OS === 'ios' ? iosClientId || clientId : webClientId || clientId;
+
+      if (!resolvedClientId) {
+        Alert.alert('Configuration needed', 'Set EXPO_PUBLIC_GOOGLE_CLIENT_ID (and platform-specific IDs) to enable Google login.');
+        return;
+      }
+
+      const redirectUri = AuthSession.makeRedirectUri({ scheme: 'usul' });
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=id_token%20token&client_id=${encodeURIComponent(resolvedClientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent('openid email profile')}`;
+      const result = await AuthSession.startAsync({ authUrl });
+      if (result.type !== 'success' || !(result as any).params?.id_token) return;
+
+      const { id_token, access_token } = (result as any).params as any;
+      const credential = GoogleAuthProvider.credential(id_token, access_token);
+      const userCred = await signInWithCredential(auth, credential);
+
+      const u = userCred.user;
+      await saveUserProfile({
+        uid: u.uid,
+        email: u.email,
+        name: u.displayName || null,
+        avatar: u.photoURL || null,
+        provider: 'google',
+      });
+      const signedIn: User = {
+        id: u.uid,
+        email: u.email || 'unknown@google.com',
+        name: u.displayName || 'Google User',
+        provider: 'google',
+        avatar: u.photoURL || undefined,
+      };
+      login(signedIn);
+      router.replace('/');
     } catch (error) {
       Alert.alert('Error', 'Google login failed. Please try again.');
     }
@@ -65,55 +108,51 @@ export default function LoginScreen() {
 
   const handleAppleLogin = async () => {
     try {
-      // Check if Apple Authentication is available
       const isAvailable = await AppleAuthentication.isAvailableAsync();
       if (!isAvailable) {
-        Alert.alert(
-          'Demo Mode',
-          'Apple login is only available on iOS devices. Using demo login.',
-          [
-            {
-              text: 'Continue with Demo',
-              onPress: () => {
-                const user: User = {
-                  id: 'apple_user_' + Date.now(),
-                  email: 'user@icloud.com',
-                  name: 'Apple User',
-                  provider: 'apple',
-                };
-                login(user);
-                router.replace('/');
-              }
-            },
-            { text: 'Cancel', style: 'cancel' }
-          ]
-        );
+        Alert.alert('Apple ID not available', 'Apple login works on iOS devices.');
         return;
       }
-      
+      const rawNonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
+        nonce: hashedNonce,
       });
-      
-      const user: User = {
-        id: credential.user,
-        email: credential.email || 'apple.user@icloud.com',
-        name: credential.fullName ? 
-          `${credential.fullName.givenName} ${credential.fullName.familyName}`.trim() : 
-          'Apple User',
-        provider: 'apple',
-      };
-      
-      login(user);
-      router.replace('/');
-    } catch (error: any) {
-      if (error.code === 'ERR_CANCELED') {
-        // User canceled, do nothing
+      const { identityToken } = credential as any;
+      if (!identityToken) {
+        Alert.alert('Error', 'No identity token returned from Apple.');
         return;
       }
+      const provider = new OAuthProvider('apple.com');
+      const firebaseCred = provider.credential({ idToken: identityToken, rawNonce });
+      const userCred = await signInWithCredential(auth, firebaseCred);
+      const u = userCred.user;
+
+      const displayName = credential.fullName ? `${credential.fullName.givenName ?? ''} ${credential.fullName.familyName ?? ''}`.trim() : undefined;
+
+      await saveUserProfile({
+        uid: u.uid,
+        email: u.email || credential.email || null,
+        name: u.displayName || displayName || 'Apple User',
+        avatar: u.photoURL || null,
+        provider: 'apple',
+      });
+
+      const signedIn: User = {
+        id: u.uid,
+        email: u.email || credential.email || 'private@apple.relay',
+        name: u.displayName || displayName || 'Apple User',
+        provider: 'apple',
+        avatar: u.photoURL || undefined,
+      };
+      login(signedIn);
+      router.replace('/');
+    } catch (error: any) {
+      if (error.code === 'ERR_CANCELED') return;
       Alert.alert('Error', 'Apple login failed. Please try again.');
     }
   };
@@ -122,23 +161,19 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <View style={styles.formContainer}>
         {!selectedAction ? (
-          // Step 1: Choose Login or Sign Up
           <>
             <View style={styles.header}>
               <Text style={styles.title}>Welcome to Usul</Text>
               <Text style={styles.tagline}>Choose an option to continue</Text>
             </View>
-            
             <Pressable style={styles.primaryButton} onPress={() => setSelectedAction('login')}>
               <Text style={styles.buttonText}>Log in</Text>
             </Pressable>
-            
             <Pressable style={styles.secondaryButton} onPress={() => setSelectedAction('signup')}>
               <Text style={styles.secondaryButtonText}>Sign up</Text>
             </Pressable>
           </>
         ) : (
-          // Step 2: Choose Authentication Method
           <>
             <View style={styles.header}>
               <Text style={styles.title}>
@@ -148,33 +183,47 @@ export default function LoginScreen() {
                 {selectedAction === 'login' ? 'Welcome back! Please enter your details' : 'Join Usul to access Islamic research texts'}
               </Text>
             </View>
-            
+            <View style={styles.inputGroup}>
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor={theme.secondary}
+                autoCapitalize='none'
+                keyboardType='email-address'
+                value={email}
+                onChangeText={setEmail}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor={theme.secondary}
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
             <Pressable style={styles.primaryButton} onPress={handleEmailLogin}>
               <Text style={styles.buttonText}>
                 {selectedAction === 'login' ? 'Continue with Email' : 'Sign up with Email'}
               </Text>
             </Pressable>
-            
             <View style={styles.dividerContainer}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>Or continue with</Text>
               <View style={styles.dividerLine} />
             </View>
-            
             <Pressable style={styles.secondaryButton} onPress={handleGoogleLogin}>
               <View style={styles.buttonWithIcon}>
                 <GoogleIcon size={20} />
                 <Text style={styles.secondaryButtonText}>Continue with Google</Text>
               </View>
             </Pressable>
-            
             <Pressable style={styles.secondaryButton} onPress={handleAppleLogin}>
               <View style={styles.buttonWithIcon}>
                 <AppleIcon size={20} />
                 <Text style={styles.secondaryButtonText}>Continue with Apple ID</Text>
               </View>
             </Pressable>
-            
             <Pressable style={styles.backButton} onPress={() => setSelectedAction(null)}>
               <Text style={styles.backButtonText}>← Back</Text>
             </Pressable>
@@ -223,7 +272,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   subtitle: {
-    display: 'none', // Hide subtitle to match usul.ai exactly
+    display: 'none',
   },
   primaryButton: {
     backgroundColor: theme.accent,
@@ -258,7 +307,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   buttonText: {
-    color: theme.background, // Dark text for proper contrast on accent background
+    color: theme.background,
     fontSize: 16,
     fontWeight: '500',
   },

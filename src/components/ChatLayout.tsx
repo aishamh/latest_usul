@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Platform, Image } from 'react-native';
 import { theme } from '../theme/colors';
 import { useConversationStore } from '../store/conversationStore';
 import { useRouter } from 'expo-router';
@@ -60,7 +60,11 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, conversationId
       {/* Top Search Bar */}
       <View style={styles.topBar}>
         <View style={styles.leftSection}>
-          <Text style={styles.logo}>Usul</Text>
+          <Image
+            source={require('../../assets/usul_icon.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
         
         <View style={styles.searchContainer}>
@@ -170,10 +174,9 @@ const styles = StyleSheet.create({
   leftSection: {
     minWidth: 100,
   },
-  logo: {
-    color: theme.primary,
-    fontSize: 20,
-    fontWeight: 'bold',
+  logoImage: {
+    width: 28,
+    height: 28,
   },
   searchContainer: {
     flex: 1,
