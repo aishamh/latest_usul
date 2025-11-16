@@ -5,6 +5,7 @@ import { useAuthStore, User } from '../store/authStore';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import Constants from 'expo-constants';
 import { GoogleIcon } from '../components/GoogleIcon';
 import { AppleIcon } from '../components/AppleIcon';
 import { theme } from '../theme/colors';
@@ -12,6 +13,8 @@ import { auth } from '../lib/firebase';
 import { GoogleAuthProvider, OAuthProvider, signInWithCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import * as Crypto from 'expo-crypto';
 import { saveUserProfile } from '../lib/firestoreChat';
+import { isFirebaseEnabled } from '../config/features';
+import { createLocalUser, signInLocal } from '../lib/localAuth';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -35,26 +38,40 @@ export default function LoginScreen() {
         return;
       }
 
-      const cred = selectedAction === 'signup'
-        ? await createUserWithEmailAndPassword(auth, email.trim(), password)
-        : await signInWithEmailAndPassword(auth, email.trim(), password);
+      let signedIn: User;
 
-      const u = cred.user;
-      await saveUserProfile({
-        uid: u.uid,
-        email: u.email,
-        name: u.displayName || null,
-        avatar: u.photoURL || null,
-        provider: 'email',
-      });
+      if (isFirebaseEnabled()) {
+        // Firebase authentication
+        const cred = selectedAction === 'signup'
+          ? await createUserWithEmailAndPassword(auth, email.trim(), password)
+          : await signInWithEmailAndPassword(auth, email.trim(), password);
 
-      const signedIn: User = {
-        id: u.uid,
-        email: u.email || email.trim(),
-        name: u.displayName || email.trim().split('@')[0],
-        provider: 'email',
-        avatar: u.photoURL || undefined,
-      };
+        const u = cred.user;
+        await saveUserProfile({
+          uid: u.uid,
+          email: u.email,
+          name: u.displayName || null,
+          avatar: u.photoURL || null,
+          provider: 'email',
+        });
+
+        signedIn = {
+          id: u.uid,
+          email: u.email || email.trim(),
+          name: u.displayName || email.trim().split('@')[0],
+          provider: 'email',
+          avatar: u.photoURL || undefined,
+        };
+      } else {
+        // Local-only authentication (no Firebase)
+        if (selectedAction === 'signup') {
+          signedIn = await createLocalUser(email.trim(), password);
+          Alert.alert('Success', 'Account created successfully! (Local mode - no cloud sync)');
+        } else {
+          signedIn = await signInLocal(email.trim(), password);
+        }
+      }
+
       login(signedIn);
       router.replace('/');
     } catch (error: any) {
@@ -65,23 +82,70 @@ export default function LoginScreen() {
 
   const handleGoogleLogin = async () => {
     try {
-      const clientId = (process as any).env?.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
-      const iosClientId = (process as any).env?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
-      const webClientId = (process as any).env?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-      const resolvedClientId = Platform.OS === 'ios' ? iosClientId || clientId : webClientId || clientId;
-
-      if (!resolvedClientId) {
-        Alert.alert('Configuration needed', 'Set EXPO_PUBLIC_GOOGLE_CLIENT_ID (and platform-specific IDs) to enable Google login.');
+      if (!isFirebaseEnabled()) {
+        Alert.alert('Not Available', 'Google sign-in requires Firebase. Please enable Firebase in the app settings.');
         return;
       }
 
-      const redirectUri = AuthSession.makeRedirectUri({ scheme: 'usul' });
-      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=id_token%20token&client_id=${encodeURIComponent(resolvedClientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent('openid email profile')}`;
-      const result = await AuthSession.startAsync({ authUrl });
-      if (result.type !== 'success' || !(result as any).params?.id_token) return;
+      // Get client IDs from Expo constants
+      const clientId = Constants.expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_CLIENT_ID || 
+                      process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
+      const iosClientId = Constants.expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || 
+                         process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+      const webClientId = Constants.expoConfig?.extra?.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 
+                         process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+      
+      const resolvedClientId = Platform.OS === 'ios' 
+        ? (iosClientId || clientId) 
+        : (webClientId || clientId);
 
-      const { id_token, access_token } = (result as any).params as any;
-      const credential = GoogleAuthProvider.credential(id_token, access_token);
+      if (!resolvedClientId) {
+        Alert.alert(
+          'Configuration needed', 
+          'Google sign-in is not configured. Please set EXPO_PUBLIC_GOOGLE_CLIENT_ID in your environment variables.'
+        );
+        return;
+      }
+
+      const redirectUri = AuthSession.makeRedirectUri({ 
+        scheme: 'usul',
+        useProxy: Platform.OS === 'web',
+      });
+
+      // Use AuthRequest for Google OAuth
+      // Get discovery document for Google OAuth
+      const discovery = await AuthSession.fetchDiscoveryAsync('https://accounts.google.com');
+      
+      if (!discovery) {
+        throw new Error('Failed to fetch Google OAuth discovery document');
+      }
+
+      // Create auth request
+      const request = new AuthSession.AuthRequest({
+        clientId: resolvedClientId,
+        scopes: ['openid', 'profile', 'email'],
+        responseType: AuthSession.ResponseType.IdToken,
+        redirectUri,
+        usePKCE: false,
+      });
+
+      // Prompt user for authentication
+      const result = await request.promptAsync(discovery);
+
+      if (result.type !== 'success') {
+        if (result.type === 'cancel') {
+          // User canceled, don't show error
+          return;
+        }
+        throw new Error(`Google sign-in failed: ${result.type}`);
+      }
+
+      const { id_token } = result.params;
+      if (!id_token) {
+        throw new Error('No ID token received from Google');
+      }
+
+      const credential = GoogleAuthProvider.credential(id_token);
       const userCred = await signInWithCredential(auth, credential);
 
       const u = userCred.user;
@@ -92,29 +156,54 @@ export default function LoginScreen() {
         avatar: u.photoURL || null,
         provider: 'google',
       });
+
       const signedIn: User = {
         id: u.uid,
         email: u.email || 'unknown@google.com',
-        name: u.displayName || 'Google User',
+        name: u.displayName || u.email?.split('@')[0] || 'Google User',
         provider: 'google',
         avatar: u.photoURL || undefined,
       };
+      
       login(signedIn);
       router.replace('/');
-    } catch (error) {
-      Alert.alert('Error', 'Google login failed. Please try again.');
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      const errorMessage = error?.message || 'Google login failed. Please try again.';
+      Alert.alert('Error', errorMessage);
     }
   };
 
   const handleAppleLogin = async () => {
     try {
-      const isAvailable = await AppleAuthentication.isAvailableAsync();
-      if (!isAvailable) {
-        Alert.alert('Apple ID not available', 'Apple login works on iOS devices.');
+      if (!isFirebaseEnabled()) {
+        Alert.alert('Not Available', 'Apple sign-in requires Firebase. Please enable Firebase in the app settings.');
         return;
       }
-      const rawNonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
-      const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
+
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert(
+          'Apple ID not available', 
+          Platform.OS === 'ios' 
+            ? 'Apple sign-in is not available on this device. Please check your device settings.'
+            : 'Apple sign-in only works on iOS devices.'
+        );
+        return;
+      }
+
+      // Generate a secure random nonce
+      const rawNonce = Math.random().toString(36).substring(2, 15) + 
+                      Math.random().toString(36).substring(2, 15) + 
+                      Date.now().toString(36);
+      
+      // Hash the nonce for Apple
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        rawNonce
+      );
+
+      // Request Apple sign-in
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -122,38 +211,65 @@ export default function LoginScreen() {
         ],
         nonce: hashedNonce,
       });
-      const { identityToken } = credential as any;
+
+      const { identityToken, email, fullName, user } = credential;
+
       if (!identityToken) {
-        Alert.alert('Error', 'No identity token returned from Apple.');
+        Alert.alert('Error', 'No identity token returned from Apple. Please try again.');
         return;
       }
+
+      // Create Firebase credential with Apple identity token
       const provider = new OAuthProvider('apple.com');
-      const firebaseCred = provider.credential({ idToken: identityToken, rawNonce });
+      const firebaseCred = provider.credential({
+        idToken: identityToken,
+        rawNonce: rawNonce, // Use the original nonce, not the hashed one
+      });
+
       const userCred = await signInWithCredential(auth, firebaseCred);
       const u = userCred.user;
 
-      const displayName = credential.fullName ? `${credential.fullName.givenName ?? ''} ${credential.fullName.familyName ?? ''}`.trim() : undefined;
+      // Construct display name from Apple credential or Firebase user
+      let displayName: string | null = null;
+      if (fullName) {
+        const nameParts = [];
+        if (fullName.givenName) nameParts.push(fullName.givenName);
+        if (fullName.familyName) nameParts.push(fullName.familyName);
+        displayName = nameParts.length > 0 ? nameParts.join(' ') : null;
+      }
+
+      // Use email from credential, Firebase user, or fallback
+      const userEmail = email || u.email || null;
+      const userName = u.displayName || displayName || userEmail?.split('@')[0] || 'Apple User';
 
       await saveUserProfile({
         uid: u.uid,
-        email: u.email || credential.email || null,
-        name: u.displayName || displayName || 'Apple User',
+        email: userEmail,
+        name: userName,
         avatar: u.photoURL || null,
         provider: 'apple',
       });
 
       const signedIn: User = {
         id: u.uid,
-        email: u.email || credential.email || 'private@apple.relay',
-        name: u.displayName || displayName || 'Apple User',
+        email: userEmail || 'private@apple.relay',
+        name: userName,
         provider: 'apple',
         avatar: u.photoURL || undefined,
       };
+
       login(signedIn);
       router.replace('/');
     } catch (error: any) {
-      if (error.code === 'ERR_CANCELED') return;
-      Alert.alert('Error', 'Apple login failed. Please try again.');
+      // Handle user cancellation gracefully
+      if (error.code === 'ERR_CANCELED' || error.code === 'ERR_REQUEST_CANCELED') {
+        // User canceled, don't show error
+        return;
+      }
+      
+      console.error('Apple login error:', error);
+      const errorMessage = error?.message || 'Apple login failed. Please try again.';
+      Alert.alert('Error', errorMessage);
     }
   };
 
@@ -207,23 +323,34 @@ export default function LoginScreen() {
                 {selectedAction === 'login' ? 'Continue with Email' : 'Sign up with Email'}
               </Text>
             </Pressable>
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Or continue with</Text>
-              <View style={styles.dividerLine} />
-            </View>
-            <Pressable style={styles.secondaryButton} onPress={handleGoogleLogin}>
-              <View style={styles.buttonWithIcon}>
-                <GoogleIcon size={20} />
-                <Text style={styles.secondaryButtonText}>Continue with Google</Text>
+            {isFirebaseEnabled() && (
+              <>
+                <View style={styles.dividerContainer}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>Or continue with</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+                <Pressable style={styles.secondaryButton} onPress={handleGoogleLogin}>
+                  <View style={styles.buttonWithIcon}>
+                    <GoogleIcon size={20} />
+                    <Text style={styles.secondaryButtonText}>Continue with Google</Text>
+                  </View>
+                </Pressable>
+                <Pressable style={styles.secondaryButton} onPress={handleAppleLogin}>
+                  <View style={styles.buttonWithIcon}>
+                    <AppleIcon size={20} />
+                    <Text style={styles.secondaryButtonText}>Continue with Apple ID</Text>
+                  </View>
+                </Pressable>
+              </>
+            )}
+            {!isFirebaseEnabled() && (
+              <View style={styles.localModeNotice}>
+                <Text style={styles.localModeText}>
+                  🔒 Local Mode: Data stored on device only (no cloud sync)
+                </Text>
               </View>
-            </Pressable>
-            <Pressable style={styles.secondaryButton} onPress={handleAppleLogin}>
-              <View style={styles.buttonWithIcon}>
-                <AppleIcon size={20} />
-                <Text style={styles.secondaryButtonText}>Continue with Apple ID</Text>
-              </View>
-            </Pressable>
+            )}
             <Pressable style={styles.backButton} onPress={() => setSelectedAction(null)}>
               <Text style={styles.backButtonText}>← Back</Text>
             </Pressable>
@@ -330,5 +457,33 @@ const styles = StyleSheet.create({
     color: theme.muted,
     fontSize: 14,
     paddingHorizontal: 16,
+  },
+  localModeNotice: {
+    backgroundColor: theme.background,
+    borderRadius: 6,
+    padding: 12,
+    marginTop: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  localModeText: {
+    color: theme.muted,
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: theme.background,
+    borderWidth: 1,
+    borderColor: theme.border,
+    borderRadius: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: theme.primary,
+    marginBottom: 12,
   },
 }); 

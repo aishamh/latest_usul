@@ -67,7 +67,7 @@ const initializeConversations = async () => {
       const processedConversations = conversations.map((conv: any) => ({
         ...conv,
         lastUpdated: new Date(conv.lastUpdated),
-        messages: conv.messages.map((msg: any) => ({
+        messages: (conv.messages || []).map((msg: any) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         }))
@@ -79,7 +79,16 @@ const initializeConversations = async () => {
   }
 };
 
-// Initialize when running in browser environment
-if (typeof window !== 'undefined') {
-  initializeConversations();
+// Initialize conversations on app start (works for both web and React Native)
+if (typeof window !== 'undefined' || typeof global !== 'undefined') {
+  // For React Native, we need to wait a bit for AsyncStorage to be ready
+  if (typeof window === 'undefined') {
+    // React Native environment
+    setTimeout(() => {
+      initializeConversations();
+    }, 100);
+  } else {
+    // Web environment
+    initializeConversations();
+  }
 }

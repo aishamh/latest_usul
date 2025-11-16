@@ -21,7 +21,7 @@
       "buildNumber": "1",
       "simulator": {
         "supportsTablet": false,
-        "modelIdentifier": "iPhone15,1",
+        "modelIdentifier": "iPhone13,4",
         "iosVersion": "17.0"
       },
       "infoPlist": {
@@ -32,7 +32,7 @@
         "UIStatusBarStyle": "UIStatusBarStyleDefault",
         "UIUserInterfaceStyle": "Light"
       },
-      "googleServicesFile": "./ios/Usul/GoogleService-Info.plist"
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -45,6 +45,12 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-apple-authentication",
+        {
+          "appleTeamId": "ZXGH9DVWZF"
+        }
+      ],
       [
         "expo-build-properties",
         {

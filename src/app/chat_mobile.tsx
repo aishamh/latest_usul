@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Platform, SafeAreaView, StatusBar, Image } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Platform, SafeAreaView, StatusBar, Image, ActivityIndicator, KeyboardAvoidingView, Linking } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import { useGlobalChat } from '../hooks/useGlobalChat';
@@ -16,7 +16,8 @@ export default function ChatScreen() {
     submit,
     status,
     error,
-    isSubmitting
+    isSubmitting,
+    isLoadingChat
   } = useGlobalChat({
     initialId: conversationId as string | undefined,
   });
@@ -49,146 +50,176 @@ export default function ChatScreen() {
 
   const isLoading = status === 'streaming' || isSubmitting;
 
+  // Show loading state while loading existing chat
+  if (isLoadingChat) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor={theme.accent} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.accent} />
+          <Text style={styles.loadingText}>Loading conversation...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={theme.accent} />
-      
-      {/* Clean Mobile Header */}
-      <View style={styles.header}>
-        <Pressable style={styles.menuButton}>
-          <Text style={styles.menuIcon}>☰</Text>
-        </Pressable>
-        <Image 
-          source={require('../../assets/usul_icon.png')}
-          style={styles.headerLogo}
-          resizeMode="contain"
-        />
-        <Pressable style={styles.moreButton}>
-          <Text style={styles.moreIcon}>⋯</Text>
-        </Pressable>
-      </View>
-
-      {/* Chat Messages */}
-      <ScrollView 
-        ref={scrollViewRef}
-        style={styles.messagesContainer}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
       >
-        {messages.length === 0 && (
-          <View style={styles.welcomeContainer}>
-            <View style={styles.welcomeContent}>
-              <View style={styles.logoContainer}>
-                <Image 
-                  source={require('../../assets/usul_icon.png')}
-                  style={styles.logoImage}
-                  resizeMode="contain"
-                />
-              </View>
-              <Text style={styles.welcomeTitle}>Welcome to Usul AI</Text>
-              <Text style={styles.welcomeSubtitle}>Type your first question below</Text>
-            </View>
-            
-            <View style={styles.bottomSuggestions}>
-              <Pressable style={styles.suggestionCard} onPress={() => setInput('Explain a Quranic verse')}>
-                <Text style={styles.suggestionTitle}>Explain Verse</Text>
-                <Text style={styles.suggestionDesc}>Get detailed explanations</Text>
-              </Pressable>
-              <Pressable style={styles.suggestionCard} onPress={() => setInput('Find a specific hadith')}>
-                <Text style={styles.suggestionTitle}>Find Hadith</Text>
-                <Text style={styles.suggestionDesc}>Search prophetic traditions</Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
-        
-        {messages.map((message) => {
-          const content = message.parts?.map(part => part.type === 'text' ? part.text : '').join('') || '';
-          const isThinking = (message as any).isThinking;
-          
-          return (
-            <View
-              key={message.id}
-              style={[
-                styles.messageBubble,
-                message.role === 'user' ? styles.userBubble : styles.assistantBubble,
-              ]}
-            >
-              {message.role === 'assistant' && isThinking ? (
-                <View style={styles.thinkingContainer}>
-                  <Text style={styles.thinkingText}>Done. Searching for </Text>
-                  <Text style={styles.thinkingQuery}>answers</Text>
-                  <View style={styles.thinkingDots}>
-                    <View style={[styles.dot, styles.dot1]} />
-                    <View style={[styles.dot, styles.dot2]} />
-                    <View style={[styles.dot, styles.dot3]} />
-                  </View>
-                </View>
-              ) : message.role === 'assistant' ? (
-                <Markdown
-                  style={{
-                    body: styles.messageText,
-                    code_inline: styles.inlineCode,
-                    code_block: styles.codeBlock,
-                  }}
-                >
-                  {content}
-                </Markdown>
-              ) : (
-                <Text style={styles.userMessageText} selectable>
-                  {content}
-                </Text>
-              )}
-              {!isThinking && (
-                <View style={styles.messageFooter}>
-                  <Text style={[styles.timestampText, message.role === 'user' && styles.userTimestampText]}>
-                    {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                  {message.role === 'assistant' && (
-                    <Pressable 
-                      style={styles.copyButton}
-                      onPress={async () => {
-                        await Clipboard.setStringAsync(content);
-                        Alert.alert('Copied', 'Message copied to clipboard');
-                      }}
-                    >
-                      <Text style={styles.copyButtonText}>Copy</Text>
-                    </Pressable>
-                  )}
-                </View>
-              )}
-            </View>
-          );
-        })}
-      </ScrollView>
-
-      {/* Input Area */}
-      <View style={styles.inputContainer}>
-        <View style={styles.inputWrapper}>
-          <TextInput
-            style={styles.textInput}
-            value={input}
-            onChangeText={setInput}
-            placeholder="Ask anything"
-            placeholderTextColor={theme.secondary}
-            multiline
-            maxLength={1000}
-            onKeyPress={(e) => {
-              if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter') {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
+        {/* Clean Mobile Header */}
+        <View style={styles.header}>
+          <Pressable style={styles.menuButton}>
+            <Text style={styles.menuIcon}>☰</Text>
+          </Pressable>
+          <Image 
+            source={require('../../assets/usul_icon.png')}
+            style={styles.headerLogo}
+            resizeMode="contain"
           />
-          <Pressable
-            style={[styles.sendButton, !input.trim() && styles.sendButtonDisabled]}
-            onPress={handleSend}
-            disabled={!input.trim() || isLoading}
-          >
-            <Text style={styles.sendIcon}>↑</Text>
+          <Pressable style={styles.moreButton}>
+            <Text style={styles.moreIcon}>⋯</Text>
           </Pressable>
         </View>
-        <Text style={styles.disclaimerText}>AI can make mistakes. Check important info.</Text>
-      </View>
+
+        {/* Chat Messages */}
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          contentContainerStyle={styles.messagesContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {messages.length === 0 && (
+            <View style={styles.welcomeContainer}>
+              <View style={styles.welcomeContent}>
+                <View style={styles.logoContainer}>
+                  <Image 
+                    source={require('../../assets/usul_icon.png')}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                  />
+                </View>
+                <Text style={styles.welcomeTitle}>Welcome to Usul AI</Text>
+                <Text style={styles.welcomeSubtitle}>Type your first question below</Text>
+              </View>
+              
+              <View style={styles.bottomSuggestions}>
+                <Pressable style={styles.suggestionCard} onPress={() => setInput('Explain a Quranic verse')}>
+                  <Text style={styles.suggestionTitle}>Explain Verse</Text>
+                  <Text style={styles.suggestionDesc}>Get detailed explanations</Text>
+                </Pressable>
+                <Pressable style={styles.suggestionCard} onPress={() => setInput('Find a specific hadith')}>
+                  <Text style={styles.suggestionTitle}>Find Hadith</Text>
+                  <Text style={styles.suggestionDesc}>Search prophetic traditions</Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
+          
+          {messages.map((message) => {
+            const content = message.parts?.map(part => part.type === 'text' ? part.text : '').join('') || '';
+            const isThinking = (message as any).isThinking;
+            
+            return (
+              <View
+                key={message.id}
+                style={[
+                  styles.messageBubble,
+                  message.role === 'user' ? styles.userBubble : styles.assistantBubble,
+                ]}
+              >
+                {message.role === 'assistant' && isThinking ? (
+                  <View style={styles.thinkingContainer}>
+                    <Text style={styles.thinkingText}>Done. Searching for </Text>
+                    <Text style={styles.thinkingQuery}>answers</Text>
+                    <View style={styles.thinkingDots}>
+                      <View style={[styles.dot, styles.dot1]} />
+                      <View style={[styles.dot, styles.dot2]} />
+                      <View style={[styles.dot, styles.dot3]} />
+                    </View>
+                  </View>
+                ) : message.role === 'assistant' ? (
+                  <Markdown
+                    style={{
+                      body: styles.messageText,
+                      code_inline: styles.inlineCode,
+                      code_block: styles.codeBlock,
+                    }}
+                  onLinkPress={(url) => {
+                    if (!url) return false;
+                    Linking.openURL(url).catch(() => {});
+                    return false;
+                  }}
+                  >
+                    {content}
+                  </Markdown>
+                ) : (
+                  <Text style={styles.userMessageText} selectable>
+                    {content}
+                  </Text>
+                )}
+                {!isThinking && (
+                  <View style={styles.messageFooter}>
+                    <Text style={[styles.timestampText, message.role === 'user' && styles.userTimestampText]}>
+                      {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                    {message.role === 'assistant' && (
+                      <Pressable 
+                        style={styles.copyButton}
+                        onPress={async () => {
+                          await Clipboard.setStringAsync(content);
+                          Alert.alert('Copied', 'Message copied to clipboard');
+                        }}
+                      >
+                        <Text style={styles.copyButtonText}>Copy</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        {/* Input Area */}
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.textInput}
+              value={input}
+              onChangeText={setInput}
+              placeholder="Ask anything"
+              placeholderTextColor={theme.secondary}
+              multiline={false}
+              returnKeyType="go"
+              blurOnSubmit={false}
+              onSubmitEditing={() => {
+                handleSend();
+              }}
+              maxLength={1000}
+              onKeyPress={(e) => {
+                if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter') {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+            />
+            <Pressable
+              style={[styles.sendButton, !input.trim() && styles.sendButtonDisabled]}
+              onPress={handleSend}
+              disabled={!input.trim() || isLoading}
+            >
+              <Text style={styles.sendIcon}>↑</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.disclaimerText}>AI can make mistakes. Check important info.</Text>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -197,6 +228,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -240,6 +274,9 @@ const styles = StyleSheet.create({
   messagesContainer: {
     flex: 1,
     padding: 16,
+  },
+  messagesContent: {
+    paddingBottom: 12,
   },
   welcomeContainer: {
     flex: 1,
@@ -300,13 +337,15 @@ const styles = StyleSheet.create({
     maxWidth: '85%',
     shadowColor: theme.border,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 1.5,
     elevation: 1,
   },
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: theme.accent,
+    backgroundColor: theme.surface,
+    borderWidth: 1,
+    borderColor: theme.border,
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
@@ -472,5 +511,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: theme.border,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.background,
+  },
+  loadingText: {
+    color: theme.secondary,
+    fontSize: 16,
+    marginTop: 16,
   },
 });

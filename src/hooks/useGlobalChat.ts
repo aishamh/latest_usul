@@ -2,6 +2,7 @@ import type { Chat, StoredMessage } from "../lib/db";
 import type { UIMessage } from "ai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "../lib/db";
+import { useConversationStore } from "../store/conversationStore";
 import { auth } from "../lib/firebase";
 import { upsertUserConversation, addUserMessage } from "../lib/firestoreChat";
 import { useChat } from "@ai-sdk/react";
@@ -25,8 +26,37 @@ export function useGlobalChat({
 }: UseChatCoreProps) {
   const [input, setInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingChat, setIsLoadingChat] = useState(!!initialId && !initialChat);
+  const { addConversation, updateConversation } = useConversationStore();
 
   const chatRef = useRef<Chat | null>(initialChat ?? null);
+
+  // Load existing chat if initialId is provided but no initialChat
+  useEffect(() => {
+    const loadChat = async () => {
+      if (initialId && !initialChat && !chatRef.current) {
+        setIsLoadingChat(true);
+        try {
+          const existingChat = await db.chats.get(initialId);
+          if (existingChat) {
+            chatRef.current = existingChat;
+            // Convert stored messages to UIMessages
+            const convertedMessages = existingChat.messages.map(msg => ({
+              id: msg.id,
+              role: msg.role,
+              parts: [{ type: 'text' as const, text: msg.content }]
+            }));
+            setMessages(convertedMessages as ExtendedUIMessage[]);
+          }
+        } catch (error) {
+          console.error('Error loading chat:', error);
+        } finally {
+          setIsLoadingChat(false);
+        }
+      }
+    };
+    loadChat();
+  }, [initialId, initialChat]);
 
   const handleFinish = useCallback(async (options: { message: UIMessage }) => {
     if (!chatRef.current) return;
@@ -41,9 +71,19 @@ export function useGlobalChat({
           content: options.message.parts?.map(part => part.type === 'text' ? part.text : '').join('') || '',
         };
         
-        await db.chats.update(chatRef.current.id, {
+        const updatedChat = {
+          ...existingChat,
           messages: [...existingChat.messages, storedMessage],
           updatedAt: new Date(),
+        };
+        
+        await db.chats.update(chatRef.current.id, updatedChat);
+
+        // Sync with conversation store
+        const messageContent = storedMessage.content.substring(0, 100); // Preview
+        updateConversation(chatRef.current.id, {
+          lastMessage: messageContent,
+          lastUpdated: new Date(),
         });
 
         // Persist assistant message to Firestore as well
@@ -59,7 +99,7 @@ export function useGlobalChat({
     } catch (error) {
       console.error('Error saving message:', error);
     }
-  }, []);
+  }, [updateConversation]);
 
   const ensureChatExists = useCallback(
     async (input: string) => {
@@ -69,7 +109,7 @@ export function useGlobalChat({
 
       const newChat: Chat = {
         id: newId,
-        title: input,
+        title: input.substring(0, 50) || 'New Chat', // Limit title length
         messages: [],
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -79,11 +119,21 @@ export function useGlobalChat({
       
       try {
         await db.chats.add(newChat);
+        
+        // Sync with conversation store
+        addConversation({
+          id: newId,
+          title: newChat.title,
+          lastMessage: '',
+          lastUpdated: new Date(),
+          messages: [],
+        });
+        
         if (auth.currentUser) {
           await upsertUserConversation({
             uid: auth.currentUser.uid,
             conversationId: newId,
-            title: input,
+            title: newChat.title,
           });
         }
       } catch (error) {
@@ -92,7 +142,7 @@ export function useGlobalChat({
 
       return newId;
     },
-    [initialId],
+    [initialId, addConversation],
   );
 
   // Convert stored messages to UIMessages for the useChat hook
@@ -167,17 +217,17 @@ export function useGlobalChat({
           aiResponse = `Muslims pray (salāh) because it is a direct command from Allah and the central act of daily worship that shapes a believer’s life, ethics, and consciousness of God.
 
 Core reasons:
-1) Divine command and purpose: "Indeed, I am Allah; there is no deity except Me, so worship Me and establish prayer for My remembrance" (Qur'an 20:14). Prayer fulfills the human purpose of worship and turns life toward God (cf. Qur'an 51:56).
-2) Moral formation: Prayer restrains a person from immorality and wrongdoing by cultivating remembrance (dhikr) and accountability (Qur'an 29:45).
+1) Divine command and purpose: "Indeed, I am Allah; there is no deity except Me, so worship Me and establish prayer for My remembrance" ([Qur'an 20:14](https://quran.com/20/14)). Prayer fulfills the human purpose of worship and turns life toward God (cf. [Qur'an 51:56](https://quran.com/51/56)).
+2) Moral formation: Prayer restrains a person from immorality and wrongdoing by cultivating remembrance (dhikr) and accountability ([Qur'an 29:45](https://quran.com/29/45)).
 3) Daily covenant: The five daily prayers punctuate the day to renew intention, gratitude, humility, and reliance upon Allah, keeping faith active rather than abstract.
 4) Prophetic practice: The Messenger of Allah ﷺ taught and exemplified the prayers; their times and method are preserved in the Sunnah and the consensus of the Ummah.
 
 Scholarly note: The obligation of the five daily prayers is established by the Qur'an’s command to establish prayer and by rigorously authenticated Prophetic reports detailing their times and forms. Jurists of all four Sunni madhhabs consider deliberate abandonment a grave sin.
 
 Key textual references:
-- "Establish prayer" appears repeatedly (e.g., Qur'an 2:43; 2:110; 20:14).
-- "Prayer restrains from shameful and unjust deeds" (Qur'an 29:45).
-- Reports on prayer times and Mi‘rāj prescription are found in the major Hadith collections (e.g., Sahih al-Bukhari, Kitab al-Mawaqit).`;
+- "Establish prayer" appears repeatedly (e.g., [Qur'an 2:43](https://quran.com/2/43); [2:110](https://quran.com/2/110); [20:14](https://quran.com/20/14)).
+- "Prayer restrains from shameful and unjust deeds" ([Qur'an 29:45](https://quran.com/29/45)).
+- Reports on prayer times and Mi‘rāj prescription are found in the major Hadith collections (e.g., *Sahih al-Bukhari*, Kitab al-Mawaqit).`;
         } else if (normalized.includes('hadith')) {
           aiResponse = `A hadith is defined as what has been transmitted from the Prophet Muhammad ﷺ in terms of his sayings, actions, approvals (tacit consent), or descriptions—whether physical or moral. This includes what occurred both before and after his prophethood. The hadith serves as the second primary source of Islamic law and guidance after the Qur'an, providing details and clarifications for many aspects of Islamic practice and belief.
 
@@ -248,18 +298,23 @@ If the issue persists, please ensure your internet connection is stable or conta
 
   const submit = useCallback(async () => {
     if (!input.trim() || isSubmitting || status !== 'ready') return;
-    
+
+    // Capture current input so we can clear the field immediately
+    const text = input;
+
     setIsSubmitting(true);
+    // Clear the input right away so it's not visible while the model is thinking
+    setInput("");
 
     try {
       // Ensure chat exists before sending
-      const currentChatId = await ensureChatExists(input);
+      const currentChatId = await ensureChatExists(text);
       
       // Create and save user message
       const userMessage: StoredMessage = {
         id: nanoid(),
         role: 'user',
-        content: input,
+        content: text,
       };
 
       // Add user message to chat
@@ -279,16 +334,20 @@ If the issue persists, please ensure your internet connection is stable or conta
           uid: auth.currentUser.uid,
           conversationId: currentChatId,
           role: 'user',
-          content: input,
+          content: text,
         });
       }
 
-      // Send message via AI SDK
-      await sendMessage({
-        text: input,
+      // Update conversation store with user message
+      updateConversation(currentChatId, {
+        lastMessage: text.substring(0, 100),
+        lastUpdated: new Date(),
       });
 
-      setInput("");
+      // Send message via AI SDK
+      await sendMessage({
+        text,
+      });
     } catch (error) {
       console.error('Error submitting message:', error);
     } finally {
@@ -300,6 +359,7 @@ If the issue persists, please ensure your internet connection is stable or conta
     status,
     ensureChatExists,
     sendMessage,
+    updateConversation,
   ]);
 
   const append = useCallback(
@@ -326,6 +386,7 @@ If the issue persists, please ensure your internet connection is stable or conta
     stop,
     reload: regenerate,
     isSubmitting,
+    isLoadingChat,
     error,
   };
 }

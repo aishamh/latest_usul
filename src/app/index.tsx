@@ -1,16 +1,80 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet, FlatList, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
 import { useConversationStore } from '../store/conversationStore';
+import { db } from '../lib/db';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { theme } from '../theme/colors';
 
 export default function ConversationListScreen() {
   const router = useRouter();
   const { user, isAuthenticated, logout, isLoading } = useAuthStore();
-  const { conversations } = useConversationStore();
+  const { conversations, addConversation } = useConversationStore();
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Sync conversations from db to conversation store on mount
+  useEffect(() => {
+    const syncConversations = async () => {
+      try {
+        if (Platform.OS === 'web') {
+          // For web, use Dexie
+          const allChats = await db.chats.getAll();
+          allChats.forEach((chat) => {
+            const existing = conversations.find(c => c.id === chat.id);
+            if (!existing) {
+              addConversation({
+                id: chat.id,
+                title: chat.title,
+                lastMessage: chat.messages[chat.messages.length - 1]?.content?.substring(0, 100) || '',
+                lastUpdated: chat.updatedAt,
+                messages: chat.messages.map(msg => ({
+                  id: msg.id,
+                  content: msg.content,
+                  role: msg.role,
+                  timestamp: chat.updatedAt,
+                  type: 'text' as const,
+                })),
+              });
+            }
+          });
+        } else {
+          // For React Native, load from AsyncStorage
+          const keys = await AsyncStorage.getAllKeys();
+          const chatKeys = keys.filter(k => k.startsWith('chat_'));
+          for (const key of chatKeys) {
+            const chatData = await AsyncStorage.getItem(key);
+            if (chatData) {
+              const chat = JSON.parse(chatData);
+              const existing = conversations.find(c => c.id === chat.id);
+              if (!existing) {
+                addConversation({
+                  id: chat.id,
+                  title: chat.title,
+                  lastMessage: chat.messages[chat.messages.length - 1]?.content?.substring(0, 100) || '',
+                  lastUpdated: new Date(chat.updatedAt),
+                  messages: chat.messages.map((msg: any) => ({
+                    id: msg.id,
+                    content: msg.content,
+                    role: msg.role,
+                    timestamp: new Date(chat.updatedAt),
+                    type: 'text' as const,
+                  })),
+                });
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error syncing conversations:', error);
+      }
+    };
+    
+    if (isAuthenticated) {
+      syncConversations();
+    }
+  }, [isAuthenticated, addConversation, conversations]);
   
   useEffect(() => {
     // Give stores time to initialize

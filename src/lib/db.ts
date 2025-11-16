@@ -85,6 +85,16 @@ export const db = {
           await AsyncStorage.setItem(`chat_${id}`, JSON.stringify(updated));
         }
       }
+    },
+
+    async getAll(): Promise<Chat[]> {
+      if (Platform.OS === 'web' && webDB) {
+        return await webDB.chats.toArray();
+      } else {
+        // For React Native, we'll need to get all keys and fetch each chat
+        // This is handled in the component that uses it
+        return [];
+      }
     }
   }
 };
