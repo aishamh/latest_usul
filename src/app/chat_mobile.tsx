@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet, Alert, Platform, SafeAreaView, StatusBar, Image, ActivityIndicator, KeyboardAvoidingView, Linking } from 'react-native';
+import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 import { useGlobalChat } from '../hooks/useGlobalChat';
@@ -8,6 +9,7 @@ import { theme } from '../theme/colors';
 
 export default function ChatScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
+  const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
   const {
     messages,
@@ -73,7 +75,13 @@ export default function ChatScreen() {
       >
         {/* Clean Mobile Header */}
         <View style={styles.header}>
-          <Pressable style={styles.menuButton}>
+          <Pressable
+            style={styles.menuButton}
+            onPress={() => {
+              // Go back to the conversation list
+              router.replace('/');
+            }}
+          >
             <Text style={styles.menuIcon}>☰</Text>
           </Pressable>
           <Image 

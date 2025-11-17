@@ -87,6 +87,14 @@ export const db = {
       }
     },
 
+    async delete(id: string): Promise<void> {
+      if (Platform.OS === 'web' && webDB) {
+        await webDB.chats.delete(id);
+      } else {
+        await AsyncStorage.removeItem(`chat_${id}`);
+      }
+    },
+
     async getAll(): Promise<Chat[]> {
       if (Platform.OS === 'web' && webDB) {
         return await webDB.chats.toArray();

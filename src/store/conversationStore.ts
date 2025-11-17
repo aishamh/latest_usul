@@ -10,6 +10,7 @@ export interface ConversationState {
   updateConversation: (id: string, updates: Partial<Conversation>) => void;
   addMessage: (conversationId: string, message: Message) => void;
   getConversationById: (id: string) => Conversation | undefined;
+  deleteConversation: (id: string) => void;
 }
 
 const CONVERSATIONS_STORAGE_KEY = 'usul_conversations';
@@ -54,6 +55,11 @@ export const useConversationStore = create<ConversationState>()((set, get) => ({
   },
   getConversationById: (id) => {
     return get().conversations.find((conv) => conv.id === id);
+  },
+  deleteConversation: (id) => {
+    const newState = get().conversations.filter((conv) => conv.id !== id);
+    set({ conversations: newState });
+    saveConversations(newState);
   },
 }));
 

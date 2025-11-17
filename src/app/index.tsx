@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, FlatList, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, Pressable, StyleSheet, FlatList, ActivityIndicator, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
 import { useConversationStore } from '../store/conversationStore';
@@ -11,7 +11,7 @@ import { theme } from '../theme/colors';
 export default function ConversationListScreen() {
   const router = useRouter();
   const { user, isAuthenticated, logout, isLoading } = useAuthStore();
-  const { conversations, addConversation } = useConversationStore();
+  const { conversations, addConversation, updateConversation, deleteConversation } = useConversationStore();
   const [isInitialized, setIsInitialized] = useState(false);
   
   // Sync conversations from db to conversation store on mount
@@ -109,6 +109,57 @@ export default function ConversationListScreen() {
   const handleOpenChat = (conversationId: string) => {
     router.push(`/chat?conversationId=${conversationId}`);
   };
+
+  const handleRenameConversation = (conversation: any) => {
+    if (Platform.OS === 'ios' && Alert.prompt) {
+      Alert.prompt(
+        'Rename chat',
+        'Enter a new name for this chat.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Save',
+            onPress: async (name) => {
+              const trimmed = name?.trim();
+              if (!trimmed) return;
+              updateConversation(conversation.id, { title: trimmed });
+              try {
+                await db.chats.update(conversation.id, { title: trimmed });
+              } catch (e) {
+                console.error('Failed to update chat title in db:', e);
+              }
+            },
+          },
+        ],
+        'plain-text',
+        conversation.title,
+      );
+    } else {
+      Alert.alert('Rename chat', 'Renaming is currently supported on iOS only.');
+    }
+  };
+
+  const handleDeleteConversation = (conversationId: string) => {
+    Alert.alert(
+      'Delete chat',
+      'This will permanently delete this chat and its messages.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            deleteConversation(conversationId);
+            try {
+              await db.chats.delete(conversationId);
+            } catch (e) {
+              console.error('Failed to delete chat from db:', e);
+            }
+          },
+        },
+      ],
+    );
+  };
   
   if (!isInitialized || isLoading) {
     return (
@@ -158,12 +209,34 @@ export default function ConversationListScreen() {
                   style={styles.conversationItem}
                   onPress={() => handleOpenChat(item.id)}
                 >
-                  <Text style={styles.conversationTitle}>{item.title}</Text>
-                  <Text style={styles.conversationPreview}>
-                    {item.lastMessage || 'No messages yet'}
-                  </Text>
+                  <View style={styles.conversationItemHeader}>
+                    <Text style={styles.conversationTitle}>{item.title || 'Untitled chat'}</Text>
+                    <View style={styles.conversationActions}>
+                      <Pressable
+                        onPress={(e) => {
+                          // Prevent triggering open-chat press
+                          // @ts-ignore
+                          e?.stopPropagation?.();
+                          handleRenameConversation(item);
+                        }}
+                      >
+                        <Text style={styles.conversationActionText}>Rename</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={(e) => {
+                          // @ts-ignore
+                          e?.stopPropagation?.();
+                          handleDeleteConversation(item.id);
+                        }}
+                      >
+                        <Text style={[styles.conversationActionText, styles.conversationDeleteText]}>
+                          Delete
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
                   <Text style={styles.conversationDate}>
-                    {new Date(item.lastUpdated).toLocaleDateString()}
+                    {item.lastUpdated ? new Date(item.lastUpdated).toLocaleDateString() : ''}
                   </Text>
                 </Pressable>
               )}
@@ -193,7 +266,9 @@ const styles = StyleSheet.create({
   sidebar: {
     flex: 1,
     backgroundColor: theme.surface,
-    padding: 16,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   sidebarHeader: {
     flexDirection: 'row',
@@ -227,9 +302,9 @@ const styles = StyleSheet.create({
   },
   newChatButton: {
     backgroundColor: theme.accent,
-    padding: 14,
-    borderRadius: 12,
-    marginBottom: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 12,
     alignItems: 'center',
   },
   newChatText: {
@@ -242,22 +317,35 @@ const styles = StyleSheet.create({
   },
   conversationItem: {
     backgroundColor: theme.background,
-    padding: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: theme.border,
   },
+  conversationItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
   conversationTitle: {
     color: theme.primary,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 0,
   },
-  conversationPreview: {
+  conversationActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  conversationActionText: {
     color: theme.secondary,
     fontSize: 12,
-    marginBottom: 4,
+  },
+  conversationDeleteText: {
+    color: theme.accent,
   },
   conversationDate: {
     color: theme.secondary,
