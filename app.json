@@ -7,13 +7,13 @@
     "platforms": ["ios", "android", "web"],
     "icon": "./assets/usul_icon.png",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#F9F9F9",
+    "backgroundColor": "#FFFFFF",
     "primaryColor": "#A0635D",
     "scheme": "usul",
     "splash": {
       "image": "./assets/usul_icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F9F9F9"
+      "backgroundColor": "#FFFFFF"
     },
     "ios": {
       "supportsTablet": false,

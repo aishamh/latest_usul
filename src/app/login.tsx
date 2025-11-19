@@ -27,7 +27,7 @@ export default function LoginScreen() {
   
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/');
+      router.replace('/chat');
     }
   }, [isAuthenticated, router]);
 

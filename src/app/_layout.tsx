@@ -74,6 +74,13 @@ export default function RootLayout() {
             }
           }} 
         />
+        <Stack.Screen
+          name="search"
+          options={{
+            title: 'Search',
+            headerShown: false,
+          }}
+        />
       </Stack>
     </SafeAreaProvider>
   );

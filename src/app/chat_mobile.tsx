@@ -89,8 +89,14 @@ export default function ChatScreen() {
             style={styles.headerLogo}
             resizeMode="contain"
           />
-          <Pressable style={styles.moreButton}>
-            <Text style={styles.moreIcon}>⋯</Text>
+          <Pressable
+            style={styles.moreButton}
+            onPress={() => {
+              // Open global search across books and content
+              router.push('/search');
+            }}
+          >
+            <Text style={styles.moreIcon}>🔍</Text>
           </Pressable>
         </View>
 
