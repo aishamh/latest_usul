@@ -1,6 +1,5 @@
-// ACTUAL usul.ai colors from screenshot - NO OTHER COLORS ALLOWED
 export const colors = {
-  background: '#FFFFFF',      // Pure white main background to match logo interior
+  background: '#FFFFFF',      // Pure white main background to match logo circle
   surface: '#F5F5F5',         // Light gray surfaces / cards
   accent: '#A0635D',          // Reddish-brown terra cotta header color
   textPrimary: '#2D3748',     // Dark text on light backgrounds

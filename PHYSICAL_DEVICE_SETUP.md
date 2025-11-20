@@ -16,7 +16,7 @@ I've enabled **Automatic Code Signing** for physical device builds. This allows 
 
 ### 2. Select Your Team in Xcode
 
-1. In Xcode, open the project: `ios/Usul.xcworkspace`
+1. In Xcode, open the project: `ios/https://eu.manieredevoir.com/products/bria-oversized-fur-coat-with-leather-belt-brownUsul.xcworkspace`
 2. Select the **Usul** project in the navigator (top item)
 3. Select the **Usul** target
 4. Go to the **Signing & Capabilities** tab

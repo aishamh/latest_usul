@@ -5,13 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "platforms": ["ios", "android", "web"],
-    "icon": "./assets/usul_icon.png",
+    "icon": "./assets/usul_logo_only.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#FFFFFF",
     "primaryColor": "#A0635D",
     "scheme": "usul",
     "splash": {
-      "image": "./assets/usul_icon.png",
+      "image": "./assets/usul_logo_only.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFFFFF"
     },

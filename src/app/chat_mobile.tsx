@@ -85,7 +85,7 @@ export default function ChatScreen() {
             <Text style={styles.menuIcon}>☰</Text>
           </Pressable>
           <Image 
-            source={require('../../assets/usul_icon.png')}
+            source={require('../../assets/usul_logo_only.png')}
             style={styles.headerLogo}
             resizeMode="contain"
           />
@@ -113,7 +113,7 @@ export default function ChatScreen() {
               <View style={styles.welcomeContent}>
                 <View style={styles.logoContainer}>
                   <Image 
-                    source={require('../../assets/usul_icon.png')}
+                    source={require('../../assets/usul_logo_only.png')}
                     style={styles.logoImage}
                     resizeMode="contain"
                   />

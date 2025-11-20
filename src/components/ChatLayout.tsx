@@ -61,7 +61,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, conversationId
       <View style={styles.topBar}>
         <View style={styles.leftSection}>
           <Image
-            source={require('../../assets/usul_icon.png')}
+            source={require('../../assets/usul_logo_only.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />

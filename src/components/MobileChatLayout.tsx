@@ -23,7 +23,7 @@ export const MobileChatLayout: React.FC<MobileChatLayoutProps> = ({ children }) 
         </Pressable>
         
         <Image 
-          source={require('../../assets/usul_icon.png')}
+          source={require('../../assets/usul_logo_only.png')}
           style={styles.logoImage}
           resizeMode="contain"
         />

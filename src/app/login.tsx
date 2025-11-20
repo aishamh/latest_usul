@@ -107,9 +107,9 @@ export default function LoginScreen() {
         return;
       }
 
-      const redirectUri = AuthSession.makeRedirectUri({ 
-        scheme: 'usul',
-        useProxy: Platform.OS === 'web',
+      // Use Expo's proxy redirect URI for reliable Google OAuth handling
+      const redirectUri = AuthSession.makeRedirectUri({
+        useProxy: true,
       });
 
       // Use AuthRequest for Google OAuth
@@ -129,8 +129,8 @@ export default function LoginScreen() {
         usePKCE: false,
       });
 
-      // Prompt user for authentication
-      const result = await request.promptAsync(discovery);
+      // Prompt user for authentication (via Expo proxy)
+      const result = await request.promptAsync(discovery, { useProxy: true });
 
       if (result.type !== 'success') {
         if (result.type === 'cancel') {
